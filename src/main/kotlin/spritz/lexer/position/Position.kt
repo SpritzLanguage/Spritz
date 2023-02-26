@@ -8,9 +8,9 @@ import spritz.interfaces.Cloneable
  */
 data class Position(var name: String, var contents: String, var index: Int, var line: Int, var column: Int) : Cloneable {
 
-    fun advance(character: Char? = null): Position {
-        this.index++
-        this.column++
+    fun advance(character: Char? = null, amount: Int = 1): Position {
+        this.index += amount
+        this.column += amount
 
         if (character == '\n') {
             this.line++

@@ -161,6 +161,12 @@ class Lexer(val name: String, val contents: String) {
                     this.advance()
                 }
 
+
+                // TODO: Make escape character only work if currently inside of a string.
+                /*'\\' -> {
+                    this.advance(2)
+                }*/
+
                 else -> {
                     val start = this.position.clone()
                     val char = this.currentChar!!
@@ -176,8 +182,8 @@ class Lexer(val name: String, val contents: String) {
         return Pair(tokens, null)
     }
 
-    private fun advance() {
-        this.position.advance(currentChar)
+    private fun advance(amount: Int = 1) {
+        this.position.advance(currentChar, amount)
         this.currentChar = if (this.position.index < this.contents.length) this.contents[this.position.index] else null
     }
 
