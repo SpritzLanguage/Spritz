@@ -253,6 +253,9 @@ class Lexer(val name: String, val contents: String) {
                     if (this.currentChar == '=') {
                         type = LESS_THAN_OR_EQUAL_TO
                         this.advance()
+                    } else if (this.currentChar == '<') {
+                        type = BIN_SHIFT_LEFT
+                        this.advance()
                     }
 
                     tokens.add(Token(type, null, start, this.position))
@@ -267,6 +270,14 @@ class Lexer(val name: String, val contents: String) {
                     if (this.currentChar == '=') {
                         type = GREATER_THAN_OR_EQUAL_TO
                         this.advance()
+                    } else if (this.currentChar == '>') {
+                        type = BIN_SHIFT_RIGHT
+                        this.advance()
+
+                        if (this.currentChar == '>') {
+                            type = BIN_UNSIGNED_SHIFT_RIGHT
+                            this.advance()
+                        }
                     }
 
                     tokens.add(Token(type, null, start, this.position))
@@ -288,6 +299,44 @@ class Lexer(val name: String, val contents: String) {
 
                 '!' -> {
                     tokens.add(Token(NEGATE, null, this.position))
+                }
+
+                '&' -> {
+                    var type = BIN_AND
+                    val start = this.position.clone()
+
+                    this.advance()
+
+                    if (this.currentChar == '&') {
+                        type = AND
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
+                }
+
+                '|' -> {
+                    var type = BIN_OR
+                    val start = this.position.clone()
+
+                    this.advance()
+
+                    if (this.currentChar == '|') {
+                        type = OR
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
+                }
+
+                '^' -> {
+                    tokens.add(Token(BIN_XOR, null, this.position))
+                    this.advance()
+                }
+
+                '~' -> {
+                    tokens.add(Token(BIN_COMPLEMENT, null, this.position))
+                    this.advance()
                 }
 
                 else -> {

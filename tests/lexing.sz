@@ -1,5 +1,0 @@
-type<int> main(arguments) {
-    std::println("hihihi")
-
-    return 0
-}

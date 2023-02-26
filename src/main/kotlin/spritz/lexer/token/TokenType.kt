@@ -17,13 +17,26 @@ enum class TokenType {
     MULTIPLY_BY,
     DIVIDE_BY,
 
+    // binary shifts
+    BIN_SHIFT_LEFT,
+    BIN_SHIFT_RIGHT,
+    BIN_UNSIGNED_SHIFT_RIGHT,
+    BIN_OR,
+    BIN_AND,
+    BIN_XOR,
+    BIN_COMPLEMENT,
+
     // comparison operators
     EQUALITY,
-    NEGATE,
     LESS_THAN,
     GREATER_THAN,
     LESS_THAN_OR_EQUAL_TO,
     GREATER_THAN_OR_EQUAL_TO,
+
+    // condition operators
+    AND,
+    OR,
+    NEGATE,
 
     // references
     KEYWORD,
