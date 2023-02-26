@@ -17,6 +17,8 @@ operator fun String.times(amount: Int): String {
 val KEYWORDS = hashMapOf(
     // declaration keywords
     "type" to "type",
+    "mutable" to "mut",
+    "constant" to "const",
 
     // inbuilt types
     "int" to "int",

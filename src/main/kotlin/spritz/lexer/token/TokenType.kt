@@ -47,6 +47,7 @@ enum class TokenType {
     COLON,
     COMMA,
     ASSIGNMENT,
+    ACCESSOR,
 
     END_OF_FILE
 }

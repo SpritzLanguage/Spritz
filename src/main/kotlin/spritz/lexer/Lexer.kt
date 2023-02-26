@@ -195,8 +195,17 @@ class Lexer(val name: String, val contents: String) {
                 }
 
                 ':' -> {
-                    tokens.add(Token(COLON, null, this.position))
+                    var type = COLON
+                    val start = this.position.clone()
+
                     this.advance()
+
+                    if (this.currentChar == ':') {
+                        type = ACCESSOR
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
                 }
 
                 ',' -> {
