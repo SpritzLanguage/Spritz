@@ -22,6 +22,5 @@ enum class TokenType {
     COLON,
     COMMA,
     END_OF_FILE,
-    SINGLE_QUOTE,
-    DOUBLE_QUOTE
+    STRING
 }

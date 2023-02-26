@@ -161,21 +161,10 @@ class Lexer(val name: String, val contents: String) {
                     this.advance()
                 }
 
-                '\'' -> {
-                    tokens.add(Token(SINGLE_QUOTE, null, this.position))
-                    this.advance()
-                }
-
                 '"' -> {
-                    tokens.add(Token(DOUBLE_QUOTE, null, this.position))
+                    tokens.add(this.buildString())
                     this.advance()
                 }
-
-
-                // TODO: Make escape character only work if currently inside of a string.
-                /*'\\' -> {
-                    this.advance(2)
-                }*/
 
                 else -> {
                     val start = this.position.clone()
@@ -195,6 +184,35 @@ class Lexer(val name: String, val contents: String) {
     private fun advance(amount: Int = 1) {
         this.position.advance(currentChar, amount)
         this.currentChar = if (this.position.index < this.contents.length) this.contents[this.position.index] else null
+    }
+
+    private fun buildString(): Token<String> {
+        var result = ""
+        val start = this.position.clone()
+
+        var escape = false
+        this.advance()
+
+        val escapeCharacters = hashMapOf(
+            Pair('n', '\n'),
+            Pair('t', '\t')
+        )
+
+        while (this.currentChar != null && (this.currentChar != '"' || escape)) {
+            if (escape) {
+                result += escapeCharacters[this.currentChar]
+            } else {
+                if (this.currentChar == '\\') {
+                    escape = true
+                } else {
+                    result += this.currentChar
+                    escape = false
+                }
+            }
+
+            this.advance()
+        }
+        return Token(STRING, result, start, this.position)
     }
 
 }
