@@ -37,21 +37,50 @@ class Lexer(val name: String, val contents: String) {
                 in digits -> {
                     val start = this.position.clone()
 
-                    var value = ""
+                    var result = ""
                     var dots = 0
 
+                    var type = INT
+
                     while (this.currentChar != null && this.currentChar!! in "$digits.") {
-                        value += if (this.currentChar == '.') {
+                        result += if (this.currentChar == '.') {
                             if (dots == 1) {
                                 break
                             }
 
                             dots++
+                            type = FLOAT
+
+                            '.'
                         } else {
                             this.currentChar
                         }
 
                         this.advance()
+                    }
+
+                    if (this.currentChar == 'f' || this.currentChar == 'F') {
+                        type = FLOAT
+
+                        if (dots == 0) {
+                            result += ".0"
+                        }
+
+                        this.advance()
+                    }
+
+                    if (dots == 1) {
+                        type = FLOAT
+                    }
+
+                    if (this.currentChar == 'b' || this.currentChar == 'B') {
+                        this.advance()
+
+                        if (dots > 0) {
+                            return Pair(mutableListOf(), LexingError("The floating point literal does not conform to type 'byte'", start, this.position))
+                        }
+
+                        type = BYTE
                     }
 
                     /**
@@ -60,17 +89,7 @@ class Lexer(val name: String, val contents: String) {
                      * This will come into play once variables and types are re-added.
                      */
 
-                    /**
-                     * TODO: Adding `f` or `F` after a number will automatically force it to be a float.
-                     * Again, just an extra feature to be similar to other languages, also useful when
-                     * type declarations are added.
-                     */
-
-                    tokens.add(if (dots == 0) {
-                        Token(INT, value.toInt(), start, this.position)
-                    } else {
-                        Token(FLOAT, value.toFloat(), start, this.position)
-                    })
+                    tokens.add(Token(type, result, start, this.position))
                 }
 
                 in identifierLetters -> {
@@ -162,7 +181,33 @@ class Lexer(val name: String, val contents: String) {
                 }
 
                 '"' -> {
-                    tokens.add(this.buildString())
+                    var result = ""
+                    val start = this.position.clone()
+
+                    var escape = false
+                    this.advance()
+
+                    val escapeCharacters = hashMapOf(
+                        Pair('n', '\n'),
+                        Pair('t', '\t')
+                    )
+
+                    while (this.currentChar != null && (this.currentChar != '"' || escape)) {
+                        if (escape) {
+                            result += escapeCharacters[this.currentChar]
+                        } else {
+                            if (this.currentChar == '\\') {
+                                escape = true
+                            } else {
+                                result += this.currentChar
+                                escape = false
+                            }
+                        }
+
+                        this.advance()
+                    }
+
+                    tokens.add(Token(STRING, result, start, this.position))
                     this.advance()
                 }
 
@@ -184,35 +229,6 @@ class Lexer(val name: String, val contents: String) {
     private fun advance(amount: Int = 1) {
         this.position.advance(currentChar, amount)
         this.currentChar = if (this.position.index < this.contents.length) this.contents[this.position.index] else null
-    }
-
-    private fun buildString(): Token<String> {
-        var result = ""
-        val start = this.position.clone()
-
-        var escape = false
-        this.advance()
-
-        val escapeCharacters = hashMapOf(
-            Pair('n', '\n'),
-            Pair('t', '\t')
-        )
-
-        while (this.currentChar != null && (this.currentChar != '"' || escape)) {
-            if (escape) {
-                result += escapeCharacters[this.currentChar]
-            } else {
-                if (this.currentChar == '\\') {
-                    escape = true
-                } else {
-                    result += this.currentChar
-                    escape = false
-                }
-            }
-
-            this.advance()
-        }
-        return Token(STRING, result, start, this.position)
     }
 
 }

@@ -13,6 +13,7 @@ enum class TokenType {
     IDENTIFIER,
     INT,
     FLOAT,
+    BYTE,
     OPEN_BRACE,
     CLOSE_BRACE,
     OPEN_PARENTHESES,

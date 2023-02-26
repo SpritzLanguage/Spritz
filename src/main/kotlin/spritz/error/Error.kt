@@ -13,9 +13,13 @@ open class Error(val name: String, val details: String, val start: Position, val
     override fun toString(): String {
         var result = "$name, line ${start.line + 1}: $details\n\n"
 
-        val line = this.start.contents.substring(max(start.contents.lastIndexOfAny(charArrayOf('\n'), start.index), 0)..start.contents.indexOf('\n', start.index))
+        val line = this.start.contents.substring(this.start.index - this.start.column until this.end.index)
 
         result += line
+
+        if (result.last() !in System.lineSeparator()) {
+            result += System.lineSeparator()
+        }
 
         result += " " * (start.column - 1)
         result += "^" * (end.column - start.column - 1)
