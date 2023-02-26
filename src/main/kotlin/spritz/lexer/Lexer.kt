@@ -164,6 +164,26 @@ class Lexer(val name: String, val contents: String) {
                     tokens.add(Token(type, null, start, this.position))
                 }
 
+                '%' -> {
+                    /**
+                     *  TODO: %= operator, possibly.
+                     *  I guess this would function similar to:
+                     *  ```
+                     *  mut a: int = 10
+                     *  a = a % 2
+                     *  ```
+                     *
+                     *  And then the new operator would function like this:
+                     *  ```
+                     *  mut a: int = 10
+                     *  a %= 2
+                     *  ```
+                     */
+
+                    tokens.add(Token(MODULO, null, this.position))
+                    this.advance()
+                }
+
                 '{' -> {
                     tokens.add(Token(OPEN_BRACE, null, this.position))
                     this.advance()
@@ -298,7 +318,17 @@ class Lexer(val name: String, val contents: String) {
                 }
 
                 '!' -> {
-                    tokens.add(Token(NEGATE, null, this.position))
+                    var type = NEGATE
+                    val start = this.position.clone()
+
+                    this.advance()
+
+                    if (this.currentChar == '=') {
+                        type = INEQUALITY
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
                 }
 
                 '&' -> {

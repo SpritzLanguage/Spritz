@@ -9,6 +9,8 @@ import java.nio.charset.Charset
 fun main() {
     val spritz = Spritz()
 
+    println("---------- LEXING ----------")
+
     val lexingTest = spritz.lex("lexing.sz", File("lexing.sz").readText(Charset.defaultCharset()))
 
     if (lexingTest.second != null) {
@@ -17,4 +19,16 @@ fun main() {
     } else {
         println(lexingTest.first)
     }
+
+    println("\n\n---------- PARSING ----------")
+
+    val parsingTest = spritz.parse(lexingTest.first)
+
+    if (parsingTest.error != null) {
+        println(parsingTest.error)
+        return
+    } else {
+        println(parsingTest.node)
+    }
+
 }

@@ -10,6 +10,7 @@ enum class TokenType {
     MINUS,
     MULTIPLY,
     DIVIDE,
+    MODULO,
     INCREMENT,
     DEINCREMENT,
     INCREASE_BY,
@@ -28,6 +29,7 @@ enum class TokenType {
 
     // comparison operators
     EQUALITY,
+    INEQUALITY,
     LESS_THAN,
     GREATER_THAN,
     LESS_THAN_OR_EQUAL_TO,
