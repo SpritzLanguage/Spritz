@@ -15,7 +15,7 @@ operator fun String.times(amount: Int): String {
 }
 
 val KEYWORDS = hashMapOf(
-    "wowza" to "Test"
+    "type" to "type"
 )
 
 fun keyword(input: String) = KEYWORDS.containsValue(input)

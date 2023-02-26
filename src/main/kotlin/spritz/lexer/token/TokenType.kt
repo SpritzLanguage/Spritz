@@ -19,5 +19,7 @@ enum class TokenType {
     CLOSE_PARENTHESES,
     OPEN_SQUARE,
     CLOSE_SQUARE,
+    COLON,
+    COMMA,
     END_OF_FILE
 }

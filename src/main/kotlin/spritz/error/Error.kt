@@ -2,6 +2,7 @@ package spritz.error
 
 import spritz.lexer.position.Position
 import spritz.util.times
+import java.lang.Integer.max
 
 /**
  * @author surge
@@ -10,20 +11,14 @@ import spritz.util.times
 open class Error(val name: String, val details: String, val start: Position, val end: Position) {
 
     override fun toString(): String {
-        var result = "$name, line ${start.line}: $details\n\n"
+        var result = "$name, line ${start.line + 1}: $details\n\n"
 
-        //val line = start.contents.split('\n')[start.line]
-
-        /* val startColumn = start.column else 0
-		val endColumn = end.column if i == line_count - 1 else len(line) - 1 */
-
-        val line = this.start.contents.substring(start.index..end.index)
-
-        val startColumn = start.column - 1
-        val endColumn = end.column - 3
+        val line = this.start.contents.substring(max(start.contents.lastIndexOfAny(charArrayOf('\n'), start.index), 0)..start.contents.indexOf('\n', start.index))
 
         result += line
-        result += (" " * startColumn) + ("^" * (endColumn - startColumn))
+
+        result += " " * (start.column - 1)
+        result += "^" * (end.column - start.column - 1)
 
         return result
     }

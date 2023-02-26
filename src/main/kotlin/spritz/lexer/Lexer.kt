@@ -121,13 +121,51 @@ class Lexer(val name: String, val contents: String) {
                     this.advance()
                 }
 
+                '{' -> {
+                    tokens.add(Token(OPEN_BRACE, null, this.position))
+                    this.advance()
+                }
+
+                '}' -> {
+                    tokens.add(Token(CLOSE_BRACE, null, this.position))
+                    this.advance()
+                }
+
+                '(' -> {
+                    tokens.add(Token(OPEN_PARENTHESES, null, this.position))
+                    this.advance()
+                }
+
+                ')' -> {
+                    tokens.add(Token(CLOSE_PARENTHESES, null, this.position))
+                    this.advance()
+                }
+
+                '[' -> {
+                    tokens.add(Token(OPEN_SQUARE, null, this.position))
+                    this.advance()
+                }
+
+                ']' -> {
+                    tokens.add(Token(CLOSE_SQUARE, null, this.position))
+                    this.advance()
+                }
+
+                ':' -> {
+                    tokens.add(Token(COLON, null, this.position))
+                    this.advance()
+                }
+
+                ',' -> {
+                    tokens.add(Token(COMMA, null, this.position))
+                    this.advance()
+                }
+
                 else -> {
                     val start = this.position.clone()
                     val char = this.currentChar!!
 
-                    while (this.currentChar != ' ' && this.currentChar != '\n') {
-                        this.advance()
-                    }
+                    this.advance()
 
                     return Pair(mutableListOf(), LexingError("Illegal Character: '$char'", start, this.position))
                 }
