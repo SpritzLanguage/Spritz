@@ -21,5 +21,7 @@ enum class TokenType {
     CLOSE_SQUARE,
     COLON,
     COMMA,
-    END_OF_FILE
+    END_OF_FILE,
+    SINGLE_QUOTE,
+    DOUBLE_QUOTE
 }

@@ -161,6 +161,16 @@ class Lexer(val name: String, val contents: String) {
                     this.advance()
                 }
 
+                '\'' -> {
+                    tokens.add(Token(SINGLE_QUOTE, null, this.position))
+                    this.advance()
+                }
+
+                '"' -> {
+                    tokens.add(Token(DOUBLE_QUOTE, null, this.position))
+                    this.advance()
+                }
+
 
                 // TODO: Make escape character only work if currently inside of a string.
                 /*'\\' -> {
