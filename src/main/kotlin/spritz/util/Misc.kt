@@ -27,7 +27,12 @@ val KEYWORDS = hashMapOf(
     "boolean" to "bool",
     "list" to "list",
     "dictionary" to "dict",
-    "byte" to "byte"
+    "byte" to "byte",
+
+    // branch control statements
+    "return" to "return",
+    "continue" to "continue",
+    "break" to "break"
 )
 
 fun keyword(input: String) = KEYWORDS.containsValue(input)
