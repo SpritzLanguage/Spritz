@@ -35,12 +35,10 @@ class Lexer(val name: String, val contents: String) {
                 in " \t;${System.lineSeparator()}" -> this.advance()
 
                 in digits -> {
-                    val start = this.position.clone()
-
                     var result = ""
                     var dots = 0
-
                     var type = INT
+                    val start = this.position.clone()
 
                     while (this.currentChar != null && this.currentChar!! in "$digits.") {
                         result += if (this.currentChar == '.') {
@@ -105,39 +103,65 @@ class Lexer(val name: String, val contents: String) {
                 }
 
                 '+' -> {
-                    /**
-                     * TODO: `+=` and `++` operators
-                     */
+                    var type = PLUS
+                    val start = this.position.clone()
 
-                    tokens.add(Token(PLUS, null, this.position))
                     this.advance()
+
+                    if (this.currentChar == '+') {
+                        type = INCREMENT
+                        this.advance()
+                    } else if (this.currentChar == '=') {
+                        type = INCREASE_BY
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
                 }
 
                 '-' -> {
-                    /**
-                     * TODO: `-=` and `--` operators
-                     */
+                    var type = MINUS
+                    val start = this.position.clone()
 
-                    tokens.add(Token(MINUS, null, this.position))
                     this.advance()
+
+                    if (this.currentChar == '-') {
+                        type = DEINCREMENT
+                        this.advance()
+                    } else if (this.currentChar == '=') {
+                        type = DECREASE_BY
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
                 }
 
                 '*' -> {
-                    /**
-                     * TODO: `*=` operator
-                     */
+                    var type = MULTIPLY
+                    val start = this.position.clone()
 
-                    tokens.add(Token(MULTIPLY, null, this.position))
                     this.advance()
+
+                    if (this.currentChar == '=') {
+                        type = MULTIPLY_BY
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
                 }
 
                 '/' -> {
-                    /**
-                     * TODO: `/=` operator
-                     */
+                    var type = DIVIDE
+                    val start = this.position.clone()
 
-                    tokens.add(Token(DIVIDE, null, this.position))
                     this.advance()
+
+                    if (this.currentChar == '=') {
+                        type = DIVIDE_BY
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
                 }
 
                 '{' -> {
@@ -209,6 +233,52 @@ class Lexer(val name: String, val contents: String) {
 
                     tokens.add(Token(STRING, result, start, this.position))
                     this.advance()
+                }
+
+                '<' -> {
+                    var type = LESS_THAN
+                    val start = this.position.clone()
+
+                    this.advance()
+
+                    if (this.currentChar == '=') {
+                        type = LESS_THAN_OR_EQUAL_TO
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
+                }
+
+                '>' -> {
+                    var type = GREATER_THAN
+                    val start = this.position.clone()
+
+                    this.advance()
+
+                    if (this.currentChar == '=') {
+                        type = GREATER_THAN_OR_EQUAL_TO
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
+                }
+
+                '=' -> {
+                    var type = ASSIGNMENT
+                    val start = this.position.clone()
+
+                    this.advance()
+
+                    if (this.currentChar == '=') {
+                        type = EQUALITY
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
+                }
+
+                '!' -> {
+                    tokens.add(Token(NEGATE, null, this.position))
                 }
 
                 else -> {
