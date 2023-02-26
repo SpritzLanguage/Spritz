@@ -105,7 +105,7 @@ class Lexer(val name: String, val contents: String) {
 
                 '*' -> {
                     /**
-                     * TODO: `*-` operator
+                     * TODO: `*=` operator
                      */
 
                     tokens.add(Token(MULTIPLY, null, this.position))
@@ -114,7 +114,7 @@ class Lexer(val name: String, val contents: String) {
 
                 '/' -> {
                     /**
-                     * TODO: `/-` operator
+                     * TODO: `/=` operator
                      */
 
                     tokens.add(Token(DIVIDE, null, this.position))
