@@ -9,6 +9,6 @@ import spritz.parser.node.Node
  */
 class ListNode(val elements: List<Node>, start: Position, end: Position) : Node(start, end) {
 
-    override fun toString() = "(ListNode: \n   ${elements}\n)"
+    override fun toString() = "(ListNode: ${elements})"
 
 }

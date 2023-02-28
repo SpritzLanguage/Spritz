@@ -6,6 +6,8 @@ import spritz.lexer.token.TokenType
 import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
 import spritz.parser.nodes.*
+import spritz.util.Argument
+import spritz.util.type
 
 /**
  * @author surge
@@ -159,7 +161,7 @@ class Parser(val tokens: List<Token<*>>) {
                 ))
             }
 
-            it.success(node as Node)
+            return@submit it.success(node as Node)
         }
     }
 
@@ -182,9 +184,9 @@ class Parser(val tokens: List<Token<*>>) {
             val node = it.register(this.binaryOperation({ this.arithmeticExpression() }, hashMapOf(
                 EQUALITY to null,
                 INEQUALITY to null,
-                LESS_THAN to null,
+                ARROW_LEFT to null,
                 LESS_THAN_OR_EQUAL_TO to null,
-                GREATER_THAN to null,
+                ARROW_RIGHT to null,
                 GREATER_THAN_OR_EQUAL_TO to null
             )))
 
@@ -247,8 +249,6 @@ class Parser(val tokens: List<Token<*>>) {
                 return@submit it
             }
 
-            println("Atom: $atom")
-
             it.success(atom as Node)
         }
     }
@@ -262,6 +262,38 @@ class Parser(val tokens: List<Token<*>>) {
                 return@submit it.success(NumberNode(token))
             }
 
+            if (token.type == OPEN_PARENTHESES) {
+                advanceRegister(it)
+
+                val expression = it.register(this.expression())
+
+                if (it.error != null) {
+                    return@submit it
+                }
+
+                return@submit if (this.currentToken.type == CLOSE_PARENTHESES) {
+                    advanceRegister(it)
+
+                    it.success(expression!!)
+                } else {
+                    it.failure(ParsingError(
+                        "Expected ')'",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+            }
+
+            if (token.matches("task")) {
+                val task = it.register(this.task())
+
+                if (it.error != null) {
+                    return@submit it
+                }
+
+                return@submit it.success(task as Node)
+            }
+
             return@submit it.failure(ParsingError(
                 "Expected int, float, '+', '-' or '('",
                 token.start,
@@ -270,30 +302,174 @@ class Parser(val tokens: List<Token<*>>) {
         }
     }
 
-    private fun binaryOperation(function: () -> ParseResult, operators: HashMap<TokenType, String?>, functionB: () -> ParseResult = function): ParseResult {
+    private fun task(): ParseResult {
         return ParseResult().submit {
-            var left = it.register(function())
+            val start = this.currentToken.start
+
+            advanceRegister(it)
+
+            var returnType: String? = null
+
+            if (this.currentToken.type == ARROW_LEFT) {
+                advanceRegister(it)
+
+                if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
+                    return@submit it.failure(ParsingError(
+                        "Expected identifier",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                returnType = this.currentToken.value as String
+
+                advanceRegister(it)
+
+                if (this.currentToken.type != ARROW_RIGHT) {
+                    return@submit it.failure(ParsingError(
+                        "Expected '>'",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                advanceRegister(it)
+            }
+
+            if (this.currentToken.type != IDENTIFIER) {
+                return@submit it.failure(ParsingError(
+                    "Expected identifier",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
+            }
+
+            val name = this.currentToken.value as String
+
+            advanceRegister(it)
+
+            val arguments = mutableListOf<Argument>()
+
+            if (this.currentToken.type == OPEN_PARENTHESES) {
+                advanceRegister(it)
+
+                while (this.currentToken.type == IDENTIFIER) {
+                    val argumentName = this.currentToken.value as String
+                    advanceRegister(it)
+
+                    var argumentType: String? = null
+
+                    if (this.currentToken.type == COLON) {
+                        advanceRegister(it)
+
+                        if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
+                            return@submit it.failure(ParsingError(
+                                "Expected identifier",
+                                this.currentToken.start,
+                                this.currentToken.end
+                            ))
+                        }
+
+                        argumentType = this.currentToken.value as String
+
+                        advanceRegister(it)
+                    }
+
+                    if (this.currentToken.type == COMMA) {
+                        advanceRegister(it)
+                    }
+
+                    arguments.add(Argument(argumentName, argumentType))
+                }
+
+                if (this.currentToken.type != CLOSE_PARENTHESES) {
+                    return@submit it.failure(ParsingError(
+                        "Expected ')'",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                advanceRegister(it)
+            }
+
+            if (this.currentToken.type == ASSIGNMENT) {
+                /**
+                 * TODO: Single line tasks
+                 * Similarly to Kotlin:
+                 * `fun a() = 2`
+                 * but with the following syntax:
+                 * `task<int> a = 2`
+                 * `task<int> a() = 2`
+                 * `task a = 2`
+                 *
+                 * basically any variation of the above ^^^
+                 */
+            }
+
+            if (this.currentToken.type != OPEN_BRACE) {
+                return@submit it.failure(ParsingError(
+                    "Expected '{' or '='",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
+            }
+
+            advanceRegister(it)
+
+            val body = it.register(this.statements())
 
             if (it.error != null) {
                 return@submit it
             }
 
-            while (operators.any { operator -> operator.key == this.currentToken.type && (operator.value == this.currentToken.value || operator.value == null) }) {
-                val operator = this.currentToken
+            body as Node
 
-                advanceRegister(it)
-
-                val right = it.register(functionB())
-
-                if (it.error != null) {
-                    return@submit it
-                }
-
-                left = BinaryOperationNode(left as Node, operator, right as Node)
+            if (this.currentToken.type != CLOSE_BRACE) {
+                return@submit it.failure(ParsingError(
+                    "Expected '}'",
+                    this.currentToken.start,
+                    this.currentToken.end,
+                ))
             }
 
-            return@submit it.success(left as Node)
+            advanceRegister(it)
+
+            it.success(TaskDefineNode(
+                name,
+                returnType,
+                arguments,
+                body as ListNode,
+                start,
+                this.currentToken.end
+            ))
         }
+    }
+
+    private fun binaryOperation(function: () -> ParseResult, operators: HashMap<TokenType, String?>, functionB: () -> ParseResult = function): ParseResult {
+        val result = ParseResult()
+
+        var left = result.register(function())
+
+        if (result.error != null) {
+            return result
+        }
+
+        while (operators.any { operator -> operator.key == this.currentToken.type && (operator.value == this.currentToken.value || operator.value == null) }) {
+            val operator = this.currentToken
+
+            advanceRegister(result)
+
+            val right = result.register(functionB())
+
+            if (result.error != null) {
+                return result
+            }
+
+            left = BinaryOperationNode(left as Node, operator, right as Node)
+        }
+
+        return result.success(left as Node)
     }
 
     private fun advance(): Token<*> {

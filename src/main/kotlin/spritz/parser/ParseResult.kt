@@ -17,6 +17,9 @@ class ParseResult {
     var lastRegisteredAdvanceCount = 0
 
     fun register(result: ParseResult): Node? {
+        this.lastRegisteredAdvanceCount = result.advancement
+        this.advancement += result.advancement
+
         if (result.error != null) {
             this.error = result.error
         }

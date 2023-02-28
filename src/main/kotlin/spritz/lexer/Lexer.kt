@@ -265,7 +265,7 @@ class Lexer(val name: String, val contents: String) {
                 }
 
                 '<' -> {
-                    var type = LESS_THAN
+                    var type = ARROW_LEFT
                     val start = this.position.clone()
 
                     this.advance()
@@ -282,7 +282,7 @@ class Lexer(val name: String, val contents: String) {
                 }
 
                 '>' -> {
-                    var type = GREATER_THAN
+                    var type = ARROW_RIGHT
                     val start = this.position.clone()
 
                     this.advance()

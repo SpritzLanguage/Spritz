@@ -1,1 +1,3 @@
-4 + 32
+task<int> calculate_indices(a: int, b: int) {
+    5 + 5
+}

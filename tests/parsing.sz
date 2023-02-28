@@ -1,0 +1,3 @@
+task<int> main(arguments: list) {
+    5 + 7
+}

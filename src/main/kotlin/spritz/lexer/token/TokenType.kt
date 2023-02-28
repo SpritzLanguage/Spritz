@@ -30,8 +30,8 @@ enum class TokenType {
     // comparison operators
     EQUALITY,
     INEQUALITY,
-    LESS_THAN,
-    GREATER_THAN,
+    ARROW_LEFT,
+    ARROW_RIGHT,
     LESS_THAN_OR_EQUAL_TO,
     GREATER_THAN_OR_EQUAL_TO,
 

@@ -16,18 +16,9 @@ operator fun String.times(amount: Int): String {
 
 val KEYWORDS = hashMapOf(
     // declaration keywords
-    "type" to "type",
+    "task" to "task",
     "mutable" to "mut",
     "constant" to "const",
-
-    // inbuilt types
-    "int" to "int",
-    "float" to "float",
-    "string" to "string",
-    "boolean" to "bool",
-    "list" to "list",
-    "dictionary" to "dict",
-    "byte" to "byte",
 
     // branch control statements
     "return" to "return",
@@ -35,4 +26,16 @@ val KEYWORDS = hashMapOf(
     "break" to "break"
 )
 
-fun keyword(input: String) = KEYWORDS.containsValue(input)
+val TYPES = hashMapOf(
+    // inbuilt types
+    "int" to "int",
+    "float" to "float",
+    "string" to "string",
+    "boolean" to "bool",
+    "list" to "list",
+    "dictionary" to "dict",
+    "byte" to "byte"
+)
+
+fun keyword(input: String) = KEYWORDS.containsValue(input) || TYPES.containsValue(input)
+fun type(input: String) = TYPES.containsValue(input)
