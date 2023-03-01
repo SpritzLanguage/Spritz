@@ -14,7 +14,7 @@ class Token<T>(val type: TokenType, val value: T?, start: Position, end: Positio
     fun matches(value: Any?, type: TokenType = TokenType.KEYWORD): Boolean = this.type == type && this.value == value
 
     override fun toString(): String {
-        return "(${type.name.lowercase()}${if (value != null) ", $value" else ""})"
+        return "(${type.name.lowercase()}${if (value != null) ", '$value'" else ""})"
     }
 
 }

@@ -1,3 +1,5 @@
 task<int> main(arguments: list) {
     5 + 7
 }
+
+task<int> test(a: int) = 5 + a

@@ -7,6 +7,7 @@ import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
 import spritz.parser.nodes.*
 import spritz.util.Argument
+import spritz.util.modifier
 import spritz.util.type
 
 /**
@@ -89,6 +90,18 @@ class Parser(val tokens: List<Token<*>>) {
             }
 
             return result.success(ReturnNode(expression as Node?, start, this.currentToken.end.clone()))
+        }
+
+        if (this.currentToken.matches("continue")) {
+            result.registerAdvancement()
+            this.advance()
+            return result.success(ContinueNode(start, this.currentToken.end.clone()))
+        }
+
+        if (this.currentToken.matches("break")) {
+            result.registerAdvancement()
+            this.advance()
+            return result.success(BreakNode(start, this.currentToken.end.clone()))
         }
 
         val expression = result.register(this.expression())
@@ -284,6 +297,38 @@ class Parser(val tokens: List<Token<*>>) {
                 }
             }
 
+            if (token.type == STRING) {
+                advanceRegister(it)
+
+                return@submit it.success(StringNode(token, token.start, token.end))
+            }
+
+            if (token.type == IDENTIFIER) {
+                advanceRegister(it)
+
+                if (modifier(this.currentToken.type)) {
+                    val modifier = this.currentToken
+
+                    advanceRegister(it)
+
+                    var expression: Node = NumberNode(Token(INT, 1, modifier.start, modifier.end))
+
+                    if (modifier.type != INCREMENT && modifier.type != DEINCREMENT) {
+                        val expr = it.register(this.expression())
+
+                        if (it.error != null) {
+                            return@submit it
+                        }
+
+                        expression = expr!!
+                    }
+
+                    return@submit it.success(AssignmentNode(token, expression, token.start, expression.end))
+                }
+
+                return@submit it.success(AccessNode(token))
+            }
+
             if (token.matches("task")) {
                 val task = it.register(this.task())
 
@@ -405,6 +450,25 @@ class Parser(val tokens: List<Token<*>>) {
                  *
                  * basically any variation of the above ^^^
                  */
+
+                advanceRegister(it)
+
+                val bodyStart = this.currentToken.start
+
+                val body = it.register(this.expression())
+
+                if (it.error != null) {
+                    return@submit it
+                }
+
+                return@submit it.success(TaskDefineNode(
+                    name,
+                    returnType,
+                    arguments,
+                    ListNode(listOf(body!!), bodyStart, this.currentToken.end),
+                    start,
+                    this.currentToken.end
+                ))
             }
 
             if (this.currentToken.type != OPEN_BRACE) {

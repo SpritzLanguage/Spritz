@@ -1,5 +1,8 @@
 package spritz.util
 
+import spritz.lexer.token.TokenType
+import spritz.lexer.token.TokenType.*
+
 /**
  * @author surge
  * @since 25/02/2023
@@ -39,3 +42,5 @@ val TYPES = hashMapOf(
 
 fun keyword(input: String) = KEYWORDS.containsValue(input) || TYPES.containsValue(input)
 fun type(input: String) = TYPES.containsValue(input)
+
+fun modifier(type: TokenType) = type == ASSIGNMENT || type == INCREMENT || type == DEINCREMENT || type == INCREASE_BY || type == DECREASE_BY || type == MULTIPLY_BY || type == DIVIDE_BY
