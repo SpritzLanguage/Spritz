@@ -165,22 +165,17 @@ class Lexer(val name: String, val contents: String) {
                 }
 
                 '%' -> {
-                    /**
-                     *  TODO: %= operator, possibly.
-                     *  I guess this would function similar to:
-                     *  ```
-                     *  mut a: int = 10
-                     *  a = a % 2
-                     *  ```
-                     *
-                     *  And then the new operator would function like this:
-                     *  ```
-                     *  mut a: int = 10
-                     *  a %= 2
-                     *  ```
-                     */
+                    var type = MODULO
+                    val start = this.position.clone()
 
-                    tokens.add(Token(MODULO, null, this.position))
+                    this.advance()
+
+                    if (this.currentChar == '=') {
+                        type = MODULO_BY
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
                     this.advance()
                 }
 

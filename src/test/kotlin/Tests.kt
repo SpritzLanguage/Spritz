@@ -22,7 +22,16 @@ fun main() {
 
     println("\n\n---------- PARSING ----------")
 
-    val parsingTest = spritz.parse(spritz.lex("parsing.sz", File("parsing.sz").readText(Charset.defaultCharset())).first)
+    val parsingTestLexer = spritz.lex("parsing.sz", File("parsing.sz").readText(Charset.defaultCharset()))
+
+    if (parsingTestLexer.second != null) {
+        println(parsingTestLexer.second)
+        return
+    } else {
+        println(parsingTestLexer.first)
+    }
+
+    val parsingTest = spritz.parse(parsingTestLexer.first)
 
     if (parsingTest.error != null) {
         println(parsingTest.error)

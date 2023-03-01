@@ -17,6 +17,7 @@ enum class TokenType {
     DECREASE_BY,
     MULTIPLY_BY,
     DIVIDE_BY,
+    MODULO_BY,
 
     // binary shifts
     BIN_SHIFT_LEFT,

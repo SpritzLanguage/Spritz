@@ -13,18 +13,22 @@ open class Error(val name: String, val details: String, val start: Position, val
     override fun toString(): String {
         var result = "$name, line ${start.line + 1}: $details\n\n"
 
-        val line = this.start.contents.substring(this.start.index - this.start.column until this.end.index - 1)
+        var endIndex = this.start.contents.indexOf('\n', this.start.index - this.start.column)
 
-        result += line
+        if (endIndex == -1) {
+            endIndex = this.start.contents.length - 1
+        }
 
-        /*result += line
+        val line = this.start.contents.substring(this.start.index - this.start.column until endIndex)
+
+        result += line.replace("\r", "")
 
         if (result.last() !in System.lineSeparator()) {
             result += System.lineSeparator()
         }
 
         result += " " * (start.column - 1)
-        result += "^" * (end.column - start.column - 1) */
+        result += "^" * (end.column - start.column - 1)
 
         return result
     }
