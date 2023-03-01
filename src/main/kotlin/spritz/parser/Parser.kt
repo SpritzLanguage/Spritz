@@ -439,18 +439,6 @@ class Parser(val tokens: List<Token<*>>) {
             }
 
             if (this.currentToken.type == ASSIGNMENT) {
-                /**
-                 * TODO: Single line tasks
-                 * Similarly to Kotlin:
-                 * `fun a() = 2`
-                 * but with the following syntax:
-                 * `task<int> a = 2`
-                 * `task<int> a() = 2`
-                 * `task a = 2`
-                 *
-                 * basically any variation of the above ^^^
-                 */
-
                 advanceRegister(it)
 
                 val bodyStart = this.currentToken.start
