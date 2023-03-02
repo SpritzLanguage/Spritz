@@ -1,10 +1,14 @@
 package spritz
 
 import spritz.error.Error
+import spritz.interpreter.Interpreter
+import spritz.interpreter.RuntimeResult
+import spritz.interpreter.context.Context
 import spritz.lexer.Lexer
 import spritz.lexer.token.Token
 import spritz.parser.ParseResult
 import spritz.parser.Parser
+import spritz.parser.node.Node
 
 /**
  * @author surge
@@ -25,17 +29,20 @@ class Spritz {
             return parsingResult.error
         }
 
+        val interpretingResult = interpret(parsingResult.node!!)
+
+        if (interpretingResult.error != null) {
+            return interpretingResult.error
+        }
+
+        println(interpretingResult.value)
+
         return null
     }
 
-    fun lex(name: String, contents: String): Pair<List<Token<*>>, Error?> {
-        val lexer = Lexer(name, contents)
-        return lexer.lex()
-    }
+    fun lex(name: String, contents: String): Pair<List<Token<*>>, Error?> = Lexer(name, contents).lex()
+    fun parse(tokens: List<Token<*>>): ParseResult = Parser(tokens).parse()
+    fun interpret(node: Node): RuntimeResult = Interpreter().visit(node, Context("<program>"))
 
-    fun parse(tokens: List<Token<*>>): ParseResult {
-        val parser = Parser(tokens)
-        return parser.parse()
-    }
 
 }

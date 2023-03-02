@@ -27,8 +27,6 @@ fun main() {
     if (parsingTestLexer.second != null) {
         println(parsingTestLexer.second)
         return
-    } else {
-        println(parsingTestLexer.first)
     }
 
     val parsingTest = spritz.parse(parsingTestLexer.first)
@@ -38,6 +36,35 @@ fun main() {
         return
     } else {
         println(parsingTest.node)
+    }
+
+    println("\n\n---------- INTERPRETING ----------")
+
+    val interpretingTestLexer = spritz.lex("interpreting.sz", File("interpreting.sz").readText(Charset.defaultCharset()))
+
+    if (interpretingTestLexer.second != null) {
+        println(interpretingTestLexer.second)
+        return
+    }
+
+    val interpretingTestParser = spritz.parse(interpretingTestLexer.first)
+
+    if (interpretingTestParser.error != null) {
+        println(interpretingTestParser.error)
+        return
+    }
+
+    val initial = System.currentTimeMillis()
+
+    val interpretingTest = spritz.interpret(interpretingTestParser.node!!)
+
+    println("Time: ${System.currentTimeMillis() - initial}ms")
+
+    if (interpretingTest.error != null) {
+        println(interpretingTest.error)
+        return
+    } else {
+        println(interpretingTest.value!!)
     }
 
 }
