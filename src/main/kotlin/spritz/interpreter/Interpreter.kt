@@ -15,6 +15,7 @@ import spritz.value.NullValue
 import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
 import spritz.value.list.ListValue
+import spritz.value.number.ByteValue
 import spritz.value.number.FloatValue
 import spritz.value.number.IntValue
 import spritz.value.string.StringValue
@@ -154,14 +155,13 @@ class Interpreter {
     }
 
     private fun number(node: NumberNode, context: Context): RuntimeResult {
-        return RuntimeResult().success(
-            (if (node.token.type == INT) {
-                IntValue(node.token.value.toString().toInt())
-            } else {
-                FloatValue(node.token.value.toString().toFloat())
-            }).positioned(node.start, node.end)
-                .givenContext(context)
-        )
+        val value = when (node.token.type) {
+            BYTE -> ByteValue(node.token.value.toString().toByte())
+            INT -> IntValue(node.token.value.toString().toInt())
+            else -> FloatValue(node.token.value.toString().toFloat())
+        }.positioned(node.start, node.end).givenContext(context)
+
+        return RuntimeResult().success(value)
     }
 
     private fun list(node: ListNode, context: Context): RuntimeResult {

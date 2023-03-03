@@ -318,7 +318,7 @@ class Parser(val tokens: List<Token<*>>) {
 
         val token = this.currentToken
 
-        if (token.type in arrayOf(INT, FLOAT)) {
+        if (token.type in arrayOf(INT, FLOAT, BYTE)) {
             advanceRegister(result)
             return result.success(NumberNode(token))
         }
@@ -343,6 +343,52 @@ class Parser(val tokens: List<Token<*>>) {
                     this.currentToken.end
                 ))
             }
+        }
+
+        if (token.type == OPEN_SQUARE) {
+            advanceRegister(result)
+
+            val elements = mutableListOf<Node>()
+
+            if (this.currentToken.type == CLOSE_SQUARE) {
+                advanceRegister(result)
+            } else {
+                var node = result.register(this.expression())
+
+                if (result.error != null) {
+                    return result
+                }
+
+                elements.add(node as Node)
+
+                while (this.currentToken.type == COMMA) {
+                    advanceRegister(result)
+
+                    node = result.register(this.expression())
+
+                    if (result.error != null) {
+                        return result
+                    }
+
+                    elements.add(node as Node)
+                }
+
+                if (this.currentToken.type != CLOSE_SQUARE) {
+                    return result.failure(ParsingError(
+                        "Expected ']'",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                advanceRegister(result)
+            }
+
+            return result.success(ListNode(
+                elements,
+                token.start,
+                this.currentToken.end
+            ))
         }
 
         if (token.type == STRING) {
