@@ -118,101 +118,103 @@ class Parser(val tokens: List<Token<*>>) {
     }
 
     private fun expression(): ParseResult {
-        return ParseResult().submit {
-            val start = this.currentToken.start.clone()
+        val result = ParseResult()
 
-            if (this.currentToken.matches("mut") || this.currentToken.matches("const")) {
-                val const = this.currentToken.matches("const")
+        val start = this.currentToken.start.clone()
 
-                advanceRegister(it)
+        if (this.currentToken.matches("mut") || this.currentToken.matches("const")) {
+            val immutable = this.currentToken.matches("const")
 
-                if (this.currentToken.type != IDENTIFIER) {
-                    return@submit it.failure(
-                        ParsingError(
-                            "Expected identifier",
-                            this.currentToken.start,
-                            this.currentToken.end
-                        )
+            advanceRegister(result)
+
+            if (this.currentToken.type != IDENTIFIER) {
+                return result.failure(
+                    ParsingError(
+                        "Expected identifier",
+                        this.currentToken.start,
+                        this.currentToken.end
                     )
-                }
-
-                val name = this.currentToken as Token<String>
-
-                advanceRegister(it)
-
-                if (this.currentToken.type != ASSIGNMENT) {
-                    return@submit it.failure(
-                        ParsingError(
-                            "Expected '='",
-                            this.currentToken.start,
-                            this.currentToken.end
-                        )
-                    )
-                }
-
-                advanceRegister(it)
-
-                val expression = it.register(this.expression())
-
-                if (it.error != null) {
-                    return@submit it
-                }
-
-                return@submit it.success(AssignmentNode(name, expression!!, start, this.currentToken.end))
+                )
             }
 
-            val node = it.register(this.binaryOperation({ this.comparisonExpression() }, hashMapOf(
-                AND to "&&",
-                OR to "||"
-            )))
+            val name = this.currentToken as Token<String>
 
-            if (it.error != null) {
-                return@submit it.failure(ParsingError(
-                    "Expected a binary operation",
-                    start,
-                    this.currentToken.end
-                ))
+            advanceRegister(result)
+
+            if (this.currentToken.type != ASSIGNMENT) {
+                return result.failure(
+                    ParsingError(
+                        "Expected '='",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    )
+                )
             }
 
-            return@submit it.success(node as Node)
+            val modifier = this.currentToken
+
+            advanceRegister(result)
+
+            val expression = result.register(this.expression())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(AssignmentNode(name, expression!!, modifier, immutable, true, start, this.currentToken.end))
         }
+
+        val node = result.register(this.binaryOperation({ this.comparisonExpression() }, hashMapOf(
+            AND to "&&",
+            OR to "||"
+        )))
+
+        if (result.error != null) {
+            return result.failure(ParsingError(
+                "Expected a binary operation",
+                start,
+                this.currentToken.end
+            ))
+        }
+
+        return result.success(node as Node)
     }
 
     private fun comparisonExpression(): ParseResult {
-        return ParseResult().submit {
-            if (this.currentToken.type == NEGATE) {
-                val operator = this.currentToken
+        val result = ParseResult()
 
-                advanceRegister(it)
+        if (this.currentToken.type == NEGATE) {
+            val operator = this.currentToken
 
-                val node = it.register(this.comparisonExpression()) as Node
+            advanceRegister(result)
 
-                if (it.error != null) {
-                    return@submit it
-                }
+            val node = result.register(this.comparisonExpression()) as Node
 
-                return@submit it.success(UnaryOperationNode(operator, node))
+            if (result.error != null) {
+                return result
             }
 
-            val node = it.register(this.binaryOperation({ this.arithmeticExpression() }, hashMapOf(
-                EQUALITY to null,
-                INEQUALITY to null,
-                ARROW_LEFT to null,
-                LESS_THAN_OR_EQUAL_TO to null,
-                ARROW_RIGHT to null,
-                GREATER_THAN_OR_EQUAL_TO to null
-            )))
-
-            if (it.error != null) {
-                return@submit it.failure(ParsingError(
-                    "Expected a value or expression",
-                    this.currentToken.start,
-                    this.currentToken.end
-                ))
-            }
-
-            it.success(node as Node)
+            return result.success(UnaryOperationNode(operator, node))
         }
+
+        val node = result.register(this.binaryOperation({ this.arithmeticExpression() }, hashMapOf(
+            EQUALITY to null,
+            INEQUALITY to null,
+            ARROW_LEFT to null,
+            LESS_THAN_OR_EQUAL_TO to null,
+            ARROW_RIGHT to null,
+            GREATER_THAN_OR_EQUAL_TO to null
+        )))
+
+        if (result.error != null) {
+            return result.failure(ParsingError(
+                "Expected a value or expression",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        return result.success(node as Node)
     }
 
     private fun arithmeticExpression(): ParseResult {
@@ -255,247 +257,247 @@ class Parser(val tokens: List<Token<*>>) {
     }
 
     private fun call(): ParseResult {
-        return ParseResult().submit {
-            val atom = it.register(this.atom())
+        val result = ParseResult()
 
-            if (it.error != null) {
-                return@submit it
-            }
+        val atom = result.register(this.atom())
 
-            it.success(atom as Node)
+        if (result.error != null) {
+            return result
         }
+
+        return result.success(atom as Node)
     }
 
     private fun atom(): ParseResult {
-        return ParseResult().submit {
-            val token = this.currentToken
+        val result = ParseResult()
 
-            if (token.type in arrayOf(INT, FLOAT)) {
-                advanceRegister(it)
-                return@submit it.success(NumberNode(token))
+        val token = this.currentToken
+
+        if (token.type in arrayOf(INT, FLOAT)) {
+            advanceRegister(result)
+            return result.success(NumberNode(token))
+        }
+
+        if (token.type == OPEN_PARENTHESES) {
+            advanceRegister(result)
+
+            val expression = result.register(this.expression())
+
+            if (result.error != null) {
+                return result
             }
 
-            if (token.type == OPEN_PARENTHESES) {
-                advanceRegister(it)
+            return if (this.currentToken.type == CLOSE_PARENTHESES) {
+                advanceRegister(result)
 
-                val expression = it.register(this.expression())
-
-                if (it.error != null) {
-                    return@submit it
-                }
-
-                return@submit if (this.currentToken.type == CLOSE_PARENTHESES) {
-                    advanceRegister(it)
-
-                    it.success(expression!!)
-                } else {
-                    it.failure(ParsingError(
-                        "Expected ')'",
-                        this.currentToken.start,
-                        this.currentToken.end
-                    ))
-                }
+                result.success(expression!!)
+            } else {
+                result.failure(ParsingError(
+                    "Expected ')'",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
             }
+        }
 
-            if (token.type == STRING) {
-                advanceRegister(it)
+        if (token.type == STRING) {
+            advanceRegister(result)
 
-                return@submit it.success(StringNode(token, token.start, token.end))
-            }
+            return result.success(StringNode(token, token.start, token.end))
+        }
 
-            if (token.type == IDENTIFIER) {
-                advanceRegister(it)
+        if (token.type == IDENTIFIER) {
+            advanceRegister(result)
 
-                if (modifier(this.currentToken.type)) {
-                    val modifier = this.currentToken
+            if (modifier(this.currentToken.type)) {
+                val modifier = this.currentToken
 
-                    advanceRegister(it)
+                advanceRegister(result)
 
-                    var expression: Node = NumberNode(Token(INT, 1, modifier.start, modifier.end))
+                var expression: Node = NumberNode(Token(INT, 1, modifier.start, modifier.end))
 
-                    if (modifier.type != INCREMENT && modifier.type != DEINCREMENT) {
-                        val expr = it.register(this.expression())
+                if (modifier.type != INCREMENT && modifier.type != DEINCREMENT) {
+                    val expr = result.register(this.expression())
 
-                        if (it.error != null) {
-                            return@submit it
-                        }
-
-                        expression = expr!!
+                    if (result.error != null) {
+                        return result
                     }
 
-                    return@submit it.success(AssignmentNode(token, expression, token.start, expression.end))
+                    expression = expr!!
                 }
 
-                return@submit it.success(AccessNode(token))
+                return result.success(AssignmentNode(token, expression, modifier, immutable = false, declaration = false, token.start, expression.end))
             }
 
-            if (token.matches("task")) {
-                val task = it.register(this.task())
-
-                if (it.error != null) {
-                    return@submit it
-                }
-
-                return@submit it.success(task as Node)
-            }
-
-            return@submit it.failure(ParsingError(
-                "Expected int, float, '+', '-' or '('",
-                token.start,
-                token.end
-            ))
+            return result.success(AccessNode(token))
         }
+
+        if (token.matches("task")) {
+            val task = result.register(this.task())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(task as Node)
+        }
+
+        return result.failure(ParsingError(
+            "Expected int, float, '+', '-' or '('",
+            token.start,
+            token.end
+        ))
     }
 
     private fun task(): ParseResult {
-        return ParseResult().submit {
-            val start = this.currentToken.start
+        val result = ParseResult()
 
-            advanceRegister(it)
+        val start = this.currentToken.start
 
-            var returnType: String? = null
+        advanceRegister(result)
 
-            if (this.currentToken.type == ARROW_LEFT) {
-                advanceRegister(it)
+        var returnType: String? = null
 
-                if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
-                    return@submit it.failure(ParsingError(
-                        "Expected identifier",
-                        this.currentToken.start,
-                        this.currentToken.end
-                    ))
-                }
+        if (this.currentToken.type == ARROW_LEFT) {
+            advanceRegister(result)
 
-                returnType = this.currentToken.value as String
-
-                advanceRegister(it)
-
-                if (this.currentToken.type != ARROW_RIGHT) {
-                    return@submit it.failure(ParsingError(
-                        "Expected '>'",
-                        this.currentToken.start,
-                        this.currentToken.end
-                    ))
-                }
-
-                advanceRegister(it)
-            }
-
-            if (this.currentToken.type != IDENTIFIER) {
-                return@submit it.failure(ParsingError(
+            if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
+                return result.failure(ParsingError(
                     "Expected identifier",
                     this.currentToken.start,
                     this.currentToken.end
                 ))
             }
 
-            val name = this.currentToken.value as String
+            returnType = this.currentToken.value as String
 
-            advanceRegister(it)
+            advanceRegister(result)
 
-            val arguments = mutableListOf<Argument>()
-
-            if (this.currentToken.type == OPEN_PARENTHESES) {
-                advanceRegister(it)
-
-                while (this.currentToken.type == IDENTIFIER) {
-                    val argumentName = this.currentToken.value as String
-                    advanceRegister(it)
-
-                    var argumentType: String? = null
-
-                    if (this.currentToken.type == COLON) {
-                        advanceRegister(it)
-
-                        if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
-                            return@submit it.failure(ParsingError(
-                                "Expected identifier",
-                                this.currentToken.start,
-                                this.currentToken.end
-                            ))
-                        }
-
-                        argumentType = this.currentToken.value as String
-
-                        advanceRegister(it)
-                    }
-
-                    if (this.currentToken.type == COMMA) {
-                        advanceRegister(it)
-                    }
-
-                    arguments.add(Argument(argumentName, argumentType))
-                }
-
-                if (this.currentToken.type != CLOSE_PARENTHESES) {
-                    return@submit it.failure(ParsingError(
-                        "Expected ')'",
-                        this.currentToken.start,
-                        this.currentToken.end
-                    ))
-                }
-
-                advanceRegister(it)
-            }
-
-            if (this.currentToken.type == ASSIGNMENT) {
-                advanceRegister(it)
-
-                val bodyStart = this.currentToken.start
-
-                val body = it.register(this.expression())
-
-                if (it.error != null) {
-                    return@submit it
-                }
-
-                return@submit it.success(TaskDefineNode(
-                    name,
-                    returnType,
-                    arguments,
-                    ListNode(listOf(body!!), bodyStart, this.currentToken.end),
-                    start,
-                    this.currentToken.end
-                ))
-            }
-
-            if (this.currentToken.type != OPEN_BRACE) {
-                return@submit it.failure(ParsingError(
-                    "Expected '{' or '='",
+            if (this.currentToken.type != ARROW_RIGHT) {
+                return result.failure(ParsingError(
+                    "Expected '>'",
                     this.currentToken.start,
                     this.currentToken.end
                 ))
             }
 
-            advanceRegister(it)
+            advanceRegister(result)
+        }
 
-            val body = it.register(this.statements())
+        if (this.currentToken.type != IDENTIFIER) {
+            return result.failure(ParsingError(
+                "Expected identifier",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
 
-            if (it.error != null) {
-                return@submit it
+        val name = this.currentToken.value as String
+
+        advanceRegister(result)
+
+        val arguments = mutableListOf<Argument>()
+
+        if (this.currentToken.type == OPEN_PARENTHESES) {
+            advanceRegister(result)
+
+            while (this.currentToken.type == IDENTIFIER) {
+                val argumentName = this.currentToken.value as String
+                advanceRegister(result)
+
+                var argumentType: String? = null
+
+                if (this.currentToken.type == COLON) {
+                    advanceRegister(result)
+
+                    if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
+                        return result.failure(ParsingError(
+                            "Expected identifier",
+                            this.currentToken.start,
+                            this.currentToken.end
+                        ))
+                    }
+
+                    argumentType = this.currentToken.value as String
+
+                    advanceRegister(result)
+                }
+
+                if (this.currentToken.type == COMMA) {
+                    advanceRegister(result)
+                }
+
+                arguments.add(Argument(argumentName, argumentType))
             }
 
-            body as Node
-
-            if (this.currentToken.type != CLOSE_BRACE) {
-                return@submit it.failure(ParsingError(
-                    "Expected '}'",
+            if (this.currentToken.type != CLOSE_PARENTHESES) {
+                return result.failure(ParsingError(
+                    "Expected ')'",
                     this.currentToken.start,
-                    this.currentToken.end,
+                    this.currentToken.end
                 ))
             }
 
-            advanceRegister(it)
+            advanceRegister(result)
+        }
 
-            it.success(TaskDefineNode(
+        if (this.currentToken.type == ASSIGNMENT) {
+            advanceRegister(result)
+
+            val bodyStart = this.currentToken.start
+
+            val body = result.register(this.expression())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(TaskDefineNode(
                 name,
                 returnType,
                 arguments,
-                body as ListNode,
+                ListNode(listOf(body!!), bodyStart, this.currentToken.end),
                 start,
                 this.currentToken.end
             ))
         }
+
+        if (this.currentToken.type != OPEN_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '{' or '='",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        val body = result.register(this.statements())
+
+        if (result.error != null) {
+            return result
+        }
+
+        body as Node
+
+        if (this.currentToken.type != CLOSE_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '}'",
+                this.currentToken.start,
+                this.currentToken.end,
+            ))
+        }
+
+        advanceRegister(result)
+
+        return result.success(TaskDefineNode(
+            name,
+            returnType,
+            arguments,
+            body as ListNode,
+            start,
+            this.currentToken.end
+        ))
     }
 
     private fun binaryOperation(function: () -> ParseResult, operators: HashMap<TokenType, String?>, functionB: () -> ParseResult = function): ParseResult {

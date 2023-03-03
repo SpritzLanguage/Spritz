@@ -11,6 +11,9 @@ enum class TokenType {
     MULTIPLY,
     DIVIDE,
     MODULO,
+
+    // modifiers
+    ASSIGNMENT,
     INCREMENT,
     DEINCREMENT,
     INCREASE_BY,
@@ -62,7 +65,6 @@ enum class TokenType {
     // other syntax
     COLON,
     COMMA,
-    ASSIGNMENT,
     ACCESSOR,
 
     END_OF_FILE

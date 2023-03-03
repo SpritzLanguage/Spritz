@@ -9,6 +9,7 @@ import spritz.lexer.token.Token
 import spritz.parser.ParseResult
 import spritz.parser.Parser
 import spritz.parser.node.Node
+import spritz.value.symbols.Table
 
 /**
  * @author surge
@@ -42,7 +43,17 @@ class Spritz {
 
     fun lex(name: String, contents: String): Pair<List<Token<*>>, Error?> = Lexer(name, contents).lex()
     fun parse(tokens: List<Token<*>>): ParseResult = Parser(tokens).parse()
-    fun interpret(node: Node): RuntimeResult = Interpreter().visit(node, Context("<program>"))
+
+    fun interpret(node: Node): RuntimeResult {
+        val interpreter = Interpreter()
+        val context = Context("<program>").givenTable(Table())
+
+        val time = System.currentTimeMillis()
+        val result = interpreter.visit(node, context)
+        println("Time: ${System.currentTimeMillis() - time}ms")
+
+        return result
+    }
 
 
 }

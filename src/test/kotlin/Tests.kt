@@ -54,11 +54,7 @@ fun main() {
         return
     }
 
-    val initial = System.currentTimeMillis()
-
     val interpretingTest = spritz.interpret(interpretingTestParser.node!!)
-
-    println("Time: ${System.currentTimeMillis() - initial}ms")
 
     if (interpretingTest.error != null) {
         println(interpretingTest.error)

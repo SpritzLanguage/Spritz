@@ -34,6 +34,8 @@ abstract class Value(val type: String, val identifier: String = type) {
     open fun lessThanOrEqualTo(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun greaterThanOrEqualTo(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
 
+    open fun negated(token: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, this, token)
+
     abstract override fun toString(): String
 
     fun positioned(start: Position, end: Position): Value {

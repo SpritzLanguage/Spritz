@@ -41,12 +41,6 @@ class ParseResult {
         return this.register(result)
     }
 
-    fun submit(result: (ParseResult) -> ParseResult): ParseResult {
-        result(this)
-
-        return this
-    }
-
     fun success(node: Node): ParseResult {
         this.node = node
         return this
