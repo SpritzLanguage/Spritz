@@ -6,7 +6,6 @@ import spritz.error.interpreting.TypeMismatchError
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
-import spritz.util.PassedArgument
 import spritz.util.RequiredArgument
 import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
@@ -27,7 +26,7 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
         return new
     }
 
-    private fun check(required: List<RequiredArgument>, given: List<PassedArgument>, start: Position, end: Position, context: Context): RuntimeResult {
+    private fun check(required: List<RequiredArgument>, given: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
 
         if (given.size > required.size) {
@@ -49,9 +48,9 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
         }
 
         required.forEachIndexed { index, argument ->
-            if (!given[index].value.matchesType(argument.type ?: PrimitiveReferenceValue("any"))) {
+            if (!given[index].matchesType(argument.type ?: PrimitiveReferenceValue("any"))) {
                 return result.failure(TypeMismatchError(
-                    "'${given[index].value}' did not conform to type '${argument.type}'",
+                    "'${given[index]}' did not conform to type '${argument.type}'",
                     start,
                     end,
                     context
@@ -62,13 +61,13 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
         return result.success(null)
     }
 
-    private fun populate(required: List<RequiredArgument>, given: List<PassedArgument>, context: Context): Error? {
+    private fun populate(required: List<RequiredArgument>, given: List<Value>, context: Context): Error? {
         given.forEachIndexed { index, passedArgument ->
             val matched = required[index]
 
-            passedArgument.value.givenContext(context)
+            passedArgument.givenContext(context)
 
-            val result = context.table.set(Symbol(matched.name.value as String, passedArgument.value, SymbolData(immutable = true, matched.name.start, matched.name.end)), context, declaration = true)
+            val result = context.table.set(Symbol(matched.name.value as String, passedArgument, SymbolData(immutable = true, matched.name.start, matched.name.end)), context, declaration = true)
 
             if (result.error != null) {
                 return result.error
@@ -78,7 +77,7 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
         return null
     }
 
-    protected fun checkAndPopulate(required: List<RequiredArgument>, given: List<PassedArgument>, start: Position, end: Position, context: Context): RuntimeResult {
+    protected fun checkAndPopulate(required: List<RequiredArgument>, given: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
 
         result.register(this.check(required, given, start, end, context))

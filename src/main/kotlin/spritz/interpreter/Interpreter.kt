@@ -7,8 +7,6 @@ import spritz.interpreter.context.Context
 import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
 import spritz.parser.nodes.*
-import spritz.util.Argument
-import spritz.util.PassedArgument
 import spritz.util.RequiredArgument
 import spritz.util.type
 import spritz.value.NullValue
@@ -397,16 +395,16 @@ class Interpreter {
     private fun callTask(node: TaskCallNode, context: Context): RuntimeResult {
         val result = RuntimeResult()
 
-        val passedArguments = mutableListOf<PassedArgument>()
+        val passedArguments = mutableListOf<Value>()
 
         node.arguments.forEach {
-            val value = result.register(this.visit(it.node, context))
+            val value = result.register(this.visit(it, context))
 
             if (result.error != null) {
                 return result
             }
 
-            passedArguments.add(PassedArgument(value!!))
+            passedArguments.add(value!!)
         }
 
         val target = result.register(this.visit(node.target, context))
@@ -442,9 +440,9 @@ class Interpreter {
                 return result
             }
 
-            local as Value
+            local!!.positioned(node.start, node.end).givenContext(context)
         } else {
-            NullValue()
+            NullValue().positioned(node.start, node.end).givenContext(context)
         }
 
         return result.successReturn(value)

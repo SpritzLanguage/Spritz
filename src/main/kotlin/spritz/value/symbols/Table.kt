@@ -3,6 +3,7 @@ package spritz.value.symbols
 import spritz.error.interpreting.DualDeclarationError
 import spritz.error.interpreting.UndefinedReferenceError
 import spritz.interpreter.context.Context
+import spritz.lexer.position.LinkPosition
 import spritz.lexer.position.Position
 import spritz.value.symbols.result.GetResult
 import spritz.value.symbols.result.SetResult
@@ -13,7 +14,11 @@ import spritz.value.symbols.result.SetResult
  */
 class Table(val parent: Table? = null) {
 
-    private val symbols = arrayListOf<Symbol>()
+    val symbols = arrayListOf<Symbol>()
+
+    fun get(identifier: String): GetResult {
+        return get(identifier, LinkPosition(), LinkPosition(), Context(""))
+    }
 
     fun get(identifier: String, start: Position, end: Position, context: Context): GetResult {
         if (this.symbols.any { it.identifier == identifier }) {

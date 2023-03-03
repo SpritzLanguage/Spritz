@@ -266,7 +266,7 @@ class Parser(val tokens: List<Token<*>>) {
         if (this.currentToken.type == OPEN_PARENTHESES) {
             advanceRegister(result)
 
-            val argumentNodes = arrayListOf<CallArgument>()
+            val argumentNodes = arrayListOf<Node>()
 
             if (this.currentToken.type == CLOSE_PARENTHESES) {
                 result.registerAdvancement()
@@ -282,7 +282,7 @@ class Parser(val tokens: List<Token<*>>) {
                     ))
                 }
 
-                argumentNodes.add(CallArgument(node as Node))
+                argumentNodes.add(node as Node)
 
                 while (this.currentToken.type == COMMA) {
                     advanceRegister(result)
@@ -293,7 +293,7 @@ class Parser(val tokens: List<Token<*>>) {
                         return result
                     }
 
-                    argumentNodes.add(CallArgument(node as Node))
+                    argumentNodes.add(node as Node)
                 }
 
                 if (this.currentToken.type != CLOSE_PARENTHESES) {

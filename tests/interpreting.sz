@@ -1,5 +1,3 @@
-task<string> test(arguments: list) {
-    return "test " + arguments
-}
+task main(arguments: list) {
 
-test([54, 34, 6543])
+}

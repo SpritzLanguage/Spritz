@@ -1,14 +1,11 @@
 package spritz.value.task
 
 import spritz.error.interpreting.ReturnTypeMismatchError
-import spritz.interfaces.Cloneable
 import spritz.interpreter.Interpreter
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
 import spritz.parser.nodes.ListNode
-import spritz.util.Argument
-import spritz.util.PassedArgument
 import spritz.util.RequiredArgument
 import spritz.value.NullValue
 import spritz.value.Value
@@ -19,7 +16,7 @@ import spritz.value.Value
  */
 class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>, val body: ListNode, val expression: Boolean, val returnType: Value?) : TaskValue(identifier, "DefinedTask") {
 
-    override fun execute(passed: List<PassedArgument>, start: Position, end: Position, context: Context): RuntimeResult {
+    override fun execute(passed: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
         val interpreter = Interpreter()
 

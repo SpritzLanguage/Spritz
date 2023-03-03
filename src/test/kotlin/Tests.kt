@@ -1,4 +1,7 @@
 import spritz.Spritz
+import spritz.value.bool.BoolValue
+import spritz.value.list.ListValue
+import spritz.value.task.DefinedTaskValue
 import java.io.File
 import java.nio.charset.Charset
 
@@ -56,11 +59,13 @@ fun main() {
 
     val interpretingTest = spritz.interpret(interpretingTestParser.node!!)
 
-    if (interpretingTest.error != null) {
-        println(interpretingTest.error)
+    if (interpretingTest.first.error != null) {
+        println(interpretingTest.first.error)
         return
-    } else {
-        println(interpretingTest.value!!)
     }
+
+    val main = interpretingTest.second.get("main").value as DefinedTaskValue
+
+    main.execute(arrayListOf(ListValue(mutableListOf(BoolValue(true)))))
 
 }

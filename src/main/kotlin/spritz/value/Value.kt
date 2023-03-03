@@ -5,9 +5,10 @@ import spritz.error.interpreting.IllegalOperationError
 import spritz.interfaces.Cloneable
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
+import spritz.lexer.position.LinkPosition
 import spritz.lexer.position.Position
 import spritz.lexer.token.Token
-import spritz.util.PassedArgument
+import spritz.value.bool.BoolValue
 
 /**
  * @author surge
@@ -30,8 +31,8 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
     open fun divide(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun modulo(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
 
-    open fun equality(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
-    open fun inequality(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
+    open fun equality(other: Value, operator: Token<*>): Pair<BoolValue?, Error?> = Pair(BoolValue(this == other), null)
+    open fun inequality(other: Value, operator: Token<*>): Pair<Value?, Error?> = Pair(BoolValue(this != other), null)
     open fun lessThan(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun greaterThan(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun lessThanOrEqualTo(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
@@ -39,7 +40,8 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
 
     open fun negated(token: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, this, token)
 
-    open fun execute(passed: List<PassedArgument>, start: Position, end: Position, context: Context): RuntimeResult = RuntimeResult().failure(IllegalOperationError("Couldn't execute '$this'", start, end, this.context))
+    fun execute(passed: List<Value>): RuntimeResult = execute(passed, LinkPosition(), LinkPosition(), this.context)
+    open fun execute(passed: List<Value>, start: Position, end: Position, context: Context): RuntimeResult = RuntimeResult().failure(IllegalOperationError("Couldn't execute '$this'", start, end, this.context))
 
     open fun matchesType(type: Value): Boolean = type is PrimitiveReferenceValue && type.type == "any"
 
