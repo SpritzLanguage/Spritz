@@ -4,6 +4,7 @@ import spritz.error.Error
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
 import spritz.lexer.token.Token
+import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
 
 /**
@@ -54,11 +55,13 @@ open class NumberValue<T : Number>(val value: T, type: String) : Value(type) {
 
     override fun toString() = this.value.toString()
 
+    override fun matchesType(type: Value) = super.matchesType(type) || type is PrimitiveReferenceValue && type.type == "number"
+
     private fun convert(result: Number): NumberValue<*> {
-        if (result is Float) {
-            TODO()
+        return if (result is Float) {
+            FloatValue(result.toFloat())
         } else {
-            return IntValue(result.toInt())
+            IntValue(result.toInt())
         }
     }
 

@@ -6,9 +6,7 @@ import spritz.lexer.token.TokenType
 import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
 import spritz.parser.nodes.*
-import spritz.util.Argument
-import spritz.util.modifier
-import spritz.util.type
+import spritz.util.*
 
 /**
  * @author surge
@@ -265,6 +263,53 @@ class Parser(val tokens: List<Token<*>>) {
             return result
         }
 
+        if (this.currentToken.type == OPEN_PARENTHESES) {
+            advanceRegister(result)
+
+            val argumentNodes = arrayListOf<CallArgument>()
+
+            if (this.currentToken.type == CLOSE_PARENTHESES) {
+                result.registerAdvancement()
+                this.advance()
+            } else {
+                val node = result.register(this.expression())
+
+                if (result.error != null) {
+                    return result.failure(ParsingError(
+                        "Expected argument",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                argumentNodes.add(CallArgument(node as Node))
+
+                while (this.currentToken.type == COMMA) {
+                    advanceRegister(result)
+
+                    val node = result.register(this.expression())
+
+                    if (result.error != null) {
+                        return result
+                    }
+
+                    argumentNodes.add(CallArgument(node as Node))
+                }
+
+                if (this.currentToken.type != CLOSE_PARENTHESES) {
+                    return result.failure(ParsingError(
+                        "Expected ',' or ')'",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                advanceRegister(result)
+            }
+
+            return result.success(TaskCallNode(atom as Node, argumentNodes, atom.start, this.currentToken.end))
+        }
+
         return result.success(atom as Node)
     }
 
@@ -332,6 +377,11 @@ class Parser(val tokens: List<Token<*>>) {
             return result.success(AccessNode(token))
         }
 
+        if (type(token.value.toString())) {
+            advanceRegister(result)
+            return result.success(AccessNode(token))
+        }
+
         if (token.matches("task")) {
             val task = result.register(this.task())
 
@@ -356,7 +406,7 @@ class Parser(val tokens: List<Token<*>>) {
 
         advanceRegister(result)
 
-        var returnType: String? = null
+        var returnType: Node? = null
 
         if (this.currentToken.type == ARROW_LEFT) {
             advanceRegister(result)
@@ -369,9 +419,11 @@ class Parser(val tokens: List<Token<*>>) {
                 ))
             }
 
-            returnType = this.currentToken.value as String
+            returnType = result.register(this.atom())
 
-            advanceRegister(result)
+            if (result.error != null) {
+                return result
+            }
 
             if (this.currentToken.type != ARROW_RIGHT) {
                 return result.failure(ParsingError(
@@ -402,10 +454,10 @@ class Parser(val tokens: List<Token<*>>) {
             advanceRegister(result)
 
             while (this.currentToken.type == IDENTIFIER) {
-                val argumentName = this.currentToken.value as String
+                val argumentName = this.currentToken
                 advanceRegister(result)
 
-                var argumentType: String? = null
+                var argumentType: Node? = null
 
                 if (this.currentToken.type == COLON) {
                     advanceRegister(result)
@@ -418,9 +470,11 @@ class Parser(val tokens: List<Token<*>>) {
                         ))
                     }
 
-                    argumentType = this.currentToken.value as String
+                    argumentType = result.register(this.atom())
 
-                    advanceRegister(result)
+                    if (result.error != null) {
+                        return result
+                    }
                 }
 
                 if (this.currentToken.type == COMMA) {

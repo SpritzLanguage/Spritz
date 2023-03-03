@@ -1,1 +1,5 @@
-5 + 5 + 1
+task<string> test(argument) {
+    return "test" + argument
+}
+
+test(5)

@@ -7,13 +7,20 @@ import spritz.interpreter.context.Context
 import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
 import spritz.parser.nodes.*
+import spritz.util.Argument
+import spritz.util.PassedArgument
+import spritz.util.RequiredArgument
+import spritz.util.type
+import spritz.value.NullValue
+import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
 import spritz.value.list.ListValue
 import spritz.value.number.FloatValue
 import spritz.value.number.IntValue
-import spritz.value.number.NumberValue
+import spritz.value.string.StringValue
 import spritz.value.symbols.Symbol
 import spritz.value.symbols.SymbolData
+import spritz.value.task.DefinedTaskValue
 
 /**
  * @author surge
@@ -29,10 +36,16 @@ class Interpreter {
         // primitives
         NumberNode::class.java to { node: Node, context: Context -> number(node as NumberNode, context) },
         ListNode::class.java to { node: Node, context: Context -> list(node as ListNode, context) },
+        StringNode::class.java to { node: Node, context: Context -> string(node as StringNode, context) },
 
         // values
         AssignmentNode::class.java to { node: Node, context: Context -> assignment(node as AssignmentNode, context) },
-        AccessNode::class.java to { node: Node, context: Context -> access(node as AccessNode, context) }
+        AccessNode::class.java to { node: Node, context: Context -> access(node as AccessNode, context) },
+        TaskDefineNode::class.java to { node: Node, context: Context -> defineTask(node as TaskDefineNode, context) },
+        TaskCallNode::class.java to { node: Node, context: Context -> callTask(node as TaskCallNode, context) },
+
+        // branch control
+        ReturnNode::class.java to { node: Node, context: Context -> callReturn(node as ReturnNode, context) }
     )
 
     fun visit(node: Node, context: Context): RuntimeResult {
@@ -166,6 +179,10 @@ class Interpreter {
         }
 
         return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(context))
+    }
+
+    private fun string(node: StringNode, context: Context): RuntimeResult {
+        return RuntimeResult().success(StringValue(node.value.value.toString()).positioned(node.start, node.end).givenContext(context))
     }
 
     private fun assignment(node: AssignmentNode, context: Context): RuntimeResult {
@@ -321,13 +338,116 @@ class Interpreter {
     private fun access(node: AccessNode, context: Context): RuntimeResult {
         val result = RuntimeResult()
 
-        val get = context.table.get(node.identifier.value as String, node.identifier.start, node.identifier.end, context)
+        if (type(node.identifier.value as String)) {
+            return result.success(PrimitiveReferenceValue(node.identifier.value))
+        } else {
+            val get = context.table.get(node.identifier.value, node.identifier.start, node.identifier.end, context)
 
-        if (get.error != null) {
-            return result.failure(get.error)
+            if (get.error != null) {
+                return result.failure(get.error)
+            }
+
+            return result.success(get.value)
+        }
+    }
+
+    private fun defineTask(node: TaskDefineNode, context: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val name = node.identifier
+        val arguments = arrayListOf<RequiredArgument>()
+
+        node.arguments.forEach {
+            if (it.type != null) {
+                val resolved = result.register(this.visit(it.type, context))
+
+                if (result.error != null) {
+                    return result
+                }
+
+                arguments.add(RequiredArgument(it.name, resolved))
+            } else {
+                arguments.add(RequiredArgument(it.name, null))
+            }
         }
 
-        return result.success(get.value)
+        var returnType: Value? = null
+
+        if (node.returnType != null) {
+            returnType = result.register(this.visit(node.returnType, context))
+
+            if (result.shouldReturn()) {
+                return result
+            }
+        }
+
+        val task = DefinedTaskValue(name, arguments, node.body, false, returnType)
+            .positioned(node.start, node.end)
+            .givenContext(context)
+
+        val set = context.table.set(Symbol(name, task, SymbolData(immutable = true, node.start, node.end)), context, declaration = true)
+
+        if (set.error != null) {
+            return result.failure(set.error)
+        }
+
+        return result.success(task)
+    }
+
+    private fun callTask(node: TaskCallNode, context: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val passedArguments = mutableListOf<PassedArgument>()
+
+        node.arguments.forEach {
+            val value = result.register(this.visit(it.node, context))
+
+            if (result.error != null) {
+                return result
+            }
+
+            passedArguments.add(PassedArgument(value!!))
+        }
+
+        val target = result.register(this.visit(node.target, context))
+
+        if (result.shouldReturn()) {
+            return result
+        }
+
+        target!!.clone().positioned(node.start, node.end).givenContext(context)
+
+        var executed = result.register(target.execute(passedArguments, node.start, node.end, context))
+
+        if (result.shouldReturn()) {
+            return result
+        }
+
+        if (executed == null) {
+            executed = NullValue()
+        }
+
+        executed = executed.clone().positioned(node.start, node.end).givenContext(context)
+
+        return result.success(executed)
+    }
+
+    private fun callReturn(node: ReturnNode, context: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val value: Value = if (node.value != null) {
+            val local = result.register(this.visit(node.value, context))
+
+            if (result.shouldReturn()) {
+                return result
+            }
+
+            local as Value
+        } else {
+            NullValue()
+        }
+
+        return result.successReturn(value)
     }
 
 }

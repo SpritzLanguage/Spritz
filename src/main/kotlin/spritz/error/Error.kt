@@ -16,7 +16,7 @@ open class Error(val name: String, val details: String, val start: Position, val
         var endIndex = this.start.contents.indexOf('\n', this.start.index - this.start.column)
 
         if (endIndex == -1) {
-            endIndex = this.start.contents.length - 1
+            endIndex = this.start.contents.length
         }
 
         val line = this.start.contents.substring(this.start.index - this.start.column until endIndex)

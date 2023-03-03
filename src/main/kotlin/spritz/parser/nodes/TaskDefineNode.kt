@@ -8,8 +8,8 @@ import spritz.util.Argument
  * @author surge
  * @since 27/02/2023
  */
-class TaskDefineNode(val name: String, val returnType: String?, val arguments: List<Argument>, val body: ListNode, start: Position, end: Position) : Node(start, end) {
+class TaskDefineNode(val identifier: String, val returnType: Node?, val arguments: List<Argument>, val body: ListNode, start: Position, end: Position) : Node(start, end) {
 
-    override fun toString() = "(Task Define: $name($arguments) -> $returnType\n    $body\n)"
+    override fun toString() = "(Task Define: $identifier($arguments) -> $returnType\n    $body\n)"
 
 }

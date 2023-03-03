@@ -46,7 +46,10 @@ class Spritz {
 
     fun interpret(node: Node): RuntimeResult {
         val interpreter = Interpreter()
-        val context = Context("<program>").givenTable(Table())
+
+        val global = Table()
+
+        val context = Context("<program>").givenTable(global)
 
         val time = System.currentTimeMillis()
         val result = interpreter.visit(node, context)
