@@ -20,6 +20,7 @@ operator fun String.times(amount: Int): String {
 val KEYWORDS = hashMapOf(
     // declaration keywords
     "task" to "task",
+    "container" to "container",
     "mutable" to "mut",
     "constant" to "const",
 

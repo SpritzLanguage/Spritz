@@ -8,6 +8,8 @@ import spritz.lexer.position.Position
  */
 abstract class Node(val start: Position, val end: Position) {
 
+    var child: Node? = null
+
     abstract override fun toString(): String
 
 }

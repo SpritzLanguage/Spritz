@@ -10,7 +10,6 @@ import spritz.value.symbols.Table
 data class Context(val name: String, val parent: Context? = null, val parentEntryPosition: Position? = null) {
 
     lateinit var table: Table
-        private set
 
     fun givenTable(table: Table): Context {
         this.table = table

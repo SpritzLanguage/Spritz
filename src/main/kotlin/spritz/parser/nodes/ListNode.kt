@@ -9,6 +9,19 @@ import spritz.parser.node.Node
  */
 class ListNode(val elements: List<Node>, start: Position, end: Position) : Node(start, end) {
 
-    override fun toString() = "(ListNode: ${elements})"
+    override fun toString(): String {
+        var result = "(ListNode: ["
+
+        elements.forEach {
+            result += "\n$it"
+        }
+
+        if (elements.isNotEmpty()) {
+            result += '\n'
+        }
+
+        result += "])"
+        return result
+    }
 
 }

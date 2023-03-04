@@ -9,6 +9,7 @@ import spritz.lexer.position.LinkPosition
 import spritz.lexer.position.Position
 import spritz.lexer.token.Token
 import spritz.value.bool.BoolValue
+import spritz.value.symbols.Table
 
 /**
  * @author surge
@@ -20,7 +21,7 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
     lateinit var end: Position
     lateinit var context: Context
 
-    // TODO: Symbol table
+    var table = Table()
 
     open fun and(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun or(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
@@ -72,7 +73,7 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
                     "Illegal operation on value of type '${value.type}': '$operator' and '$other'",
                     operator.start,
                     other.end,
-                    value.context
+                    other.context
                 )
             )
         }

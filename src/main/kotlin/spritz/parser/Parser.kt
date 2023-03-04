@@ -258,6 +258,7 @@ class Parser(val tokens: List<Token<*>>) {
         val result = ParseResult()
 
         val atom = result.register(this.atom())
+        var node = atom
 
         if (result.error != null) {
             return result
@@ -307,10 +308,30 @@ class Parser(val tokens: List<Token<*>>) {
                 advanceRegister(result)
             }
 
-            return result.success(TaskCallNode(atom as Node, argumentNodes, atom.start, this.currentToken.end))
+            node = TaskCallNode(atom as Node, argumentNodes, atom.start, this.currentToken.end)
         }
 
-        return result.success(atom as Node)
+        var child: Node? = null
+
+        while (this.currentToken.type == ACCESSOR) {
+            if (child == null) {
+                child = atom as Node
+            }
+
+            result.registerAdvancement()
+            this.advance()
+
+            val sub = result.register(this.call())
+
+            if (result.error != null) {
+                return result
+            }
+
+            child.child = sub as Node
+            child = sub
+        }
+
+        return result.success(node as Node)
     }
 
     private fun atom(): ParseResult {
@@ -438,6 +459,16 @@ class Parser(val tokens: List<Token<*>>) {
             return result.success(task as Node)
         }
 
+        if (token.matches("container")) {
+            val container = result.register(this.container())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(container as Node)
+        }
+
         return result.failure(ParsingError(
             "Expected int, float, '+', '-' or '('",
             token.start,
@@ -554,9 +585,10 @@ class Parser(val tokens: List<Token<*>>) {
 
             return result.success(TaskDefineNode(
                 name,
+                true,
                 returnType,
                 arguments,
-                ListNode(listOf(body!!), bodyStart, this.currentToken.end),
+                body!!,
                 start,
                 this.currentToken.end
             ))
@@ -592,12 +624,103 @@ class Parser(val tokens: List<Token<*>>) {
 
         return result.success(TaskDefineNode(
             name,
+            false,
             returnType,
             arguments,
-            body as ListNode,
+            body,
             start,
             this.currentToken.end
         ))
+    }
+
+    private fun container(): ParseResult {
+        val result = ParseResult()
+        val start = this.currentToken.start
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != IDENTIFIER) {
+            return result.failure(ParsingError(
+                "Expected identifier",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        val name = this.currentToken
+
+        advanceRegister(result)
+
+        val constructor = mutableListOf<Argument>()
+
+        if (this.currentToken.type == OPEN_PARENTHESES) {
+            advanceRegister(result)
+
+            while (this.currentToken.type == IDENTIFIER) {
+                val argumentName = this.currentToken
+                advanceRegister(result)
+
+                var argumentType: Node? = null
+
+                if (this.currentToken.type == COLON) {
+                    advanceRegister(result)
+
+                    if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
+                        return result.failure(ParsingError(
+                            "Expected identifier",
+                            this.currentToken.start,
+                            this.currentToken.end
+                        ))
+                    }
+
+                    argumentType = result.register(this.atom())
+
+                    if (result.error != null) {
+                        return result
+                    }
+                }
+
+                if (this.currentToken.type == COMMA) {
+                    advanceRegister(result)
+                }
+
+                constructor.add(Argument(argumentName, argumentType))
+            }
+
+            if (this.currentToken.type != CLOSE_PARENTHESES) {
+                return result.failure(ParsingError(
+                    "Expected ')'",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
+            }
+
+            advanceRegister(result)
+        }
+
+        var body: Node? = null
+
+        if (this.currentToken.type == OPEN_BRACE) {
+            advanceRegister(result)
+
+            body = result.register(this.statements())
+
+            if (result.error != null) {
+                return result
+            }
+
+            if (this.currentToken.type != CLOSE_BRACE) {
+                return result.failure(ParsingError(
+                    "Expected '}'",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
+            }
+
+            advanceRegister(result)
+        }
+
+        return result.success(ContainerDefineNode(name, constructor, body, start, this.currentToken.end))
     }
 
     private fun binaryOperation(function: () -> ParseResult, operators: HashMap<TokenType, String?>, functionB: () -> ParseResult = function): ParseResult {

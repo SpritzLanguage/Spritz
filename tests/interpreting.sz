@@ -1,3 +1,16 @@
-task main(arguments: list) {
+container TestContainer(a: int) {
+    task<int> add(b: int) = a + b
+}
 
+container Tester(a: TestContainer)
+
+task main(arguments: list) {
+    const test = TestContainer(50)
+    const tester = Tester(test)
+
+    const num = 55
+
+    std::println(num)
+
+    return tester::a::add(num)
 }

@@ -26,7 +26,7 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
         return new
     }
 
-    private fun check(required: List<RequiredArgument>, given: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
+    protected fun check(required: List<RequiredArgument>, given: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
 
         if (given.size > required.size) {

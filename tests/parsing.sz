@@ -1,5 +1,13 @@
-task<int> main(arguments: list) {
-    5 + 7
+container TestContainer()
+
+container TestContainer {
+
 }
 
-task<int> test(a: int) = 5 + a
+container TestContainer(a: int) {
+    task<int> add(b: int) = a + b
+}
+
+task test() {
+
+}

@@ -37,7 +37,7 @@ class Table(val parent: Table? = null) {
         ))
     }
 
-    fun set(symbol: Symbol, context: Context, declaration: Boolean = false): SetResult {
+    fun set(symbol: Symbol, context: Context, declaration: Boolean): SetResult {
         if (symbols.any { it.identifier == symbol.identifier }) {
             return if (declaration) {
                 SetResult(
@@ -61,7 +61,7 @@ class Table(val parent: Table? = null) {
         }
 
         if (this.parent != null) {
-            return this.parent.set(symbol, context)
+            return this.parent.set(symbol, context, false)
         }
 
         return SetResult(
