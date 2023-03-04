@@ -181,7 +181,7 @@ class Parser(val tokens: List<Token<*>>) {
     private fun comparisonExpression(): ParseResult {
         val result = ParseResult()
 
-        if (this.currentToken.type == NEGATE) {
+        if (unary(this.currentToken.type)) {
             val operator = this.currentToken
 
             advanceRegister(result)
@@ -218,7 +218,15 @@ class Parser(val tokens: List<Token<*>>) {
     private fun arithmeticExpression(): ParseResult {
         return this.binaryOperation({ term() }, hashMapOf(
             PLUS to null,
-            MINUS to null
+            MINUS to null,
+
+            BIN_SHIFT_LEFT to null,
+            BIN_SHIFT_RIGHT to null,
+            BIN_UNSIGNED_SHIFT_RIGHT to null,
+            BIN_OR to null,
+            BIN_AND to null,
+            BIN_XOR to null,
+            BIN_COMPLEMENT to null
         ))
     }
 
@@ -574,8 +582,6 @@ class Parser(val tokens: List<Token<*>>) {
 
         if (this.currentToken.type == ASSIGNMENT) {
             advanceRegister(result)
-
-            val bodyStart = this.currentToken.start
 
             val body = result.register(this.expression())
 

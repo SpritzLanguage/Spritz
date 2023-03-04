@@ -43,5 +43,6 @@ val TYPES = hashMapOf(
 
 fun keyword(input: String) = KEYWORDS.containsValue(input) || TYPES.containsValue(input)
 fun type(input: String) = TYPES.containsValue(input)
-fun comparator(type: TokenType) = type == AND || type == OR
+
+fun unary(type: TokenType) = type == NEGATE || type == BIN_COMPLEMENT
 fun modifier(type: TokenType) = type == ASSIGNMENT || type == INCREMENT || type == DEINCREMENT || type == INCREASE_BY || type == DECREASE_BY || type == MULTIPLY_BY || type == DIVIDE_BY

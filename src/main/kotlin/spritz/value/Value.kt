@@ -32,6 +32,15 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
     open fun divide(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun modulo(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
 
+    // binary shifts
+    open fun binShl(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
+    open fun binShr(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
+    open fun binUShr(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
+    open fun binOr(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
+    open fun binAnd(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
+    open fun binXor(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
+    open fun binComplement(operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, this, operator)
+
     open fun equality(other: Value, operator: Token<*>): Pair<BoolValue?, Error?> = Pair(BoolValue(this == other), null)
     open fun inequality(other: Value, operator: Token<*>): Pair<Value?, Error?> = Pair(BoolValue(this != other), null)
     open fun lessThan(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)

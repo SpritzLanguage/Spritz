@@ -94,6 +94,13 @@ class Interpreter {
             DIVIDE -> left.divide(right, node.operator)
             MODULO -> left.modulo(right, node.operator)
 
+            BIN_SHIFT_LEFT -> left.binShl(right, node.operator)
+            BIN_SHIFT_RIGHT -> left.binShr(right, node.operator)
+            BIN_UNSIGNED_SHIFT_RIGHT -> left.binUShr(right, node.operator)
+            BIN_OR -> left.binOr(right, node.operator)
+            BIN_AND -> left.binAnd(right, node.operator)
+            BIN_XOR -> left.binXor(right, node.operator)
+
             EQUALITY -> left.equality(right, node.operator)
             INEQUALITY -> left.inequality(right, node.operator)
             ARROW_LEFT -> left.lessThan(right, node.operator)
@@ -137,6 +144,16 @@ class Interpreter {
 
             NEGATE -> {
                 val transformed = value.negated(node.operator)
+
+                if (transformed.second != null) {
+                    return result.failure(transformed.second!!)
+                }
+
+                return result.success(transformed.first!!.positioned(node.start, node.end))
+            }
+
+            BIN_COMPLEMENT -> {
+                val transformed = value.binComplement(node.operator)
 
                 if (transformed.second != null) {
                     return result.failure(transformed.second!!)
