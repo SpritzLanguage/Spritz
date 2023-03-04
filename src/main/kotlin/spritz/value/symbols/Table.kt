@@ -1,11 +1,13 @@
 package spritz.value.symbols
 
 import spritz.error.interpreting.DualDeclarationError
+import spritz.error.interpreting.MemberNotFoundError
 import spritz.error.interpreting.UndefinedReferenceError
 import spritz.interpreter.context.Context
 import spritz.lexer.position.LinkPosition
 import spritz.lexer.position.Position
 import spritz.value.symbols.result.GetResult
+import spritz.value.symbols.result.RemoveResult
 import spritz.value.symbols.result.SetResult
 
 /**
@@ -73,6 +75,24 @@ class Table(val parent: Table? = null) {
                 context
             )
         )
+    }
+
+    fun remove(identifier: String, start: Position, end: Position, context: Context): RemoveResult {
+        if (symbols.any { it.identifier == identifier }) {
+            symbols.removeIf { it.identifier == identifier }
+            return RemoveResult(null)
+        }
+
+        if (this.parent != null) {
+            return this.parent.remove(identifier, start, end, context)
+        }
+
+        return RemoveResult(MemberNotFoundError(
+            "'$identifier' was not found",
+            start,
+            end,
+            context
+        ))
     }
 
 }

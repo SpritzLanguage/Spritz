@@ -7,6 +7,8 @@ import spritz.lexer.position.Position
 import spritz.parser.node.Node
 import spritz.util.RequiredArgument
 import spritz.value.Value
+import spritz.value.symbols.Symbol
+import spritz.value.symbols.SymbolData
 import spritz.value.symbols.Table
 import spritz.value.task.TaskValue
 
@@ -35,14 +37,17 @@ class DefinedContainerValue(identifier: String, val constructor: List<RequiredAr
         if (body != null) {
             result.register(interpreter.visit(this.body, instanceContext))
 
-            if (result.shouldReturn() && result.returnValue == null) {
+            if (result.error != null) {
                 return result
             }
         }
 
         table.symbols.addAll(instanceContext.table.symbols)
+        val instance = InstanceValue(this, table)
 
-        return result.success(InstanceValue(this, table))
+        instance.table.set(Symbol("this", instance, SymbolData(immutable = true, this.start, this.end)), context, true)
+
+        return result.success(instance.positioned(start, end).givenContext(instanceContext))
     }
 
     override fun toString() = "($identifier)"

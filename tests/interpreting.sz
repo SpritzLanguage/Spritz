@@ -1,16 +1,15 @@
-container TestContainer(a: int) {
-    task<int> add(b: int) = a + b
+container Lliw(red: int, green: int, blue: int, alpha: int) {
+
+    task<int> combine() = this::red + this::green + this::blue + this::alpha
+
 }
 
-container Tester(a: TestContainer)
-
 task main(arguments: list) {
-    const test = TestContainer(50)
-    const tester = Tester(test)
+    const lliw = Lliw(255, 255, 255, 255)
 
-    const num = 55
+    std::println(lliw::combine())
 
-    std::println(num)
+    lliw::red = 3
 
-    return tester::a::add(num)
+    std::println(lliw::red)
 }

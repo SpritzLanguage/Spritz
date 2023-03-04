@@ -6,6 +6,6 @@ package spritz.value
  */
 class NullValue : Value("null") {
 
-    override fun toString() = "(null)"
+    override fun toString() = "null"
 
 }

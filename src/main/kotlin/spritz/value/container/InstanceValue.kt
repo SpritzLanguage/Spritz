@@ -14,6 +14,6 @@ open class InstanceValue(val parent: DefinedContainerValue, table: Table) : Valu
     }
 
     override fun matchesType(type: Value) = super.matchesType(type) || type.type == parent.type
-    override fun toString() = "(Instance of $type: ${table.symbols})"
+    override fun toString() = "(Instance of $type)"
 
 }

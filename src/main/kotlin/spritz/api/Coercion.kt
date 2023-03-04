@@ -76,7 +76,7 @@ object Coercion {
             return ListValue(elements)
         }
 
-        fun coerceMethod(instance: Any, method: Method): JvmTaskValue {
+        fun coerceMethod(instance: Any, identifier: String, method: Method): JvmTaskValue {
             val types = method.parameterTypes.filter { it != CallData::class.java }
             val converted = arrayListOf<Class<*>>()
 
@@ -85,7 +85,7 @@ object Coercion {
             }
 
             return JvmTaskValue(
-                method.name,
+                identifier,
 
                 { data ->
                     val arguments = arrayListOf<Any>()

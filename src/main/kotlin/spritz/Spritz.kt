@@ -1,6 +1,8 @@
 package spritz
 
 import spritz.api.Coercion
+import spritz.api.annotations.Excluded
+import spritz.api.annotations.Identifier
 import spritz.builtin.Global
 import spritz.builtin.Standard
 import spritz.error.Error
@@ -18,6 +20,7 @@ import spritz.value.container.JvmInstanceValue
 import spritz.value.symbols.Symbol
 import spritz.value.symbols.SymbolData
 import spritz.value.symbols.Table
+import java.awt.Color
 import java.lang.reflect.Modifier
 
 /**
@@ -75,11 +78,6 @@ class Spritz {
         globalTable = Table()
 
         loadInto(Global, globalTable, context)
-        load(Standard, "std")
-
-        //globalTable.set(Symbol("true", BoolValue(true), SymbolData(immutable = true, LinkPosition("true", "global symbol table"), LinkPosition("true", "global symbol table"))), context, true)
-        //globalTable.set(Symbol("false", BoolValue(false), SymbolData(immutable = true, LinkPosition("false", "global symbol table"), LinkPosition("false", "global symbol table"))), context, true)
-        //globalTable.set(Symbol("std", JvmInstanceValue(Standard).givenContext(context), SymbolData(immutable = true, LinkPosition(), LinkPosition())), context, true)
 
         context.givenTable(globalTable)
     }
@@ -92,19 +90,28 @@ class Spritz {
         return this
     }
 
+    fun loadStandard(): Spritz {
+        load(Standard, "std")
+
+        return this
+    }
+
     companion object {
 
         fun loadInto(instance: Any, table: Table, context: Context) {
             instance::class.java.declaredFields.forEach { field ->
-                if (field.name == "INSTANCE") {
+                if (field.name == "INSTANCE" || field.getAnnotation(Excluded::class.java) != null) {
                     return@forEach
                 }
 
+                field.isAccessible = true
+
+                val name = field.getAnnotation(Identifier::class.java)?.identifier ?: field.name
+
                 table.set(
                     Symbol(
-                        field.name,
-                        Coercion.JvmToSpritz.coerce(field.get(instance)).positioned(LinkPosition(), LinkPosition())
-                            .givenContext(context),
+                        name,
+                        Coercion.JvmToSpritz.coerce(field.get(instance)).positioned(LinkPosition(), LinkPosition()).givenContext(context),
                         SymbolData(immutable = Modifier.isFinal(field.modifiers), LinkPosition(), LinkPosition())
                     ),
                     Context(instance::class.java.simpleName),
@@ -113,19 +120,24 @@ class Spritz {
             }
 
             instance::class.java.declaredMethods.forEach { method ->
+                if (method.isAnnotationPresent(Excluded::class.java)) {
+                    return@forEach
+                }
+
+                method.isAccessible = true
+
+                val name = method.getAnnotation(Identifier::class.java)?.identifier ?: method.name
+
                 table.set(
                     Symbol(
-                        method.name,
-                        Coercion.JvmToSpritz.coerceMethod(instance, method).positioned(LinkPosition(), LinkPosition())
-                            .givenContext(context),
+                        name,
+                        Coercion.JvmToSpritz.coerceMethod(instance, name, method).positioned(LinkPosition(), LinkPosition()).givenContext(context),
                         SymbolData(immutable = Modifier.isFinal(method.modifiers), LinkPosition(), LinkPosition())
                     ),
                     Context(instance::class.java.simpleName),
                     true
                 )
             }
-
-            println(table.symbols)
         }
 
     }

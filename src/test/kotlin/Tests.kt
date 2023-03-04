@@ -11,6 +11,7 @@ import java.nio.charset.Charset
  */
 fun main() {
     val spritz = Spritz()
+        .loadStandard()
 
     println("---------- LEXING ----------")
 
@@ -72,7 +73,5 @@ fun main() {
         println(result.error)
         return
     }
-
-    println(result.value)
 
 }
