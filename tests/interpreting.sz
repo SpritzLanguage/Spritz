@@ -12,4 +12,31 @@ task main(arguments: list) {
     lliw::red = 3
 
     std::println(lliw::red)
+
+    std::println("test"::get(1))
+
+    std::println(lliw::red)
+
+    for (i : std::int_range(0, 5, 2)) {
+        std::println(i)
+    }
+
+    // for (i : std::int_range(54, 65, 1)) -> std::println(i)
+
+    const bleh = for (i : std::int_range(1, 5, 1)) -> i
+
+    std::println(bleh)
+
+    mut mutable = 0
+
+    while (mutable < 5) {
+        std::println(mutable)
+        mutable++
+    }
+
+    mutable = 0
+
+    while (mutable < 10) -> mutable++
+
+    std::println(mutable)
 }

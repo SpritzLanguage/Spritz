@@ -11,11 +11,11 @@ An interpreted programming language written in Kotlin, intended for use as a scr
 task<int> main(arguments: list<string>) {
     std::println("Hello, world!")
     
-    for (i: int = 0 -> 10, step: int = 2) {
+    for (i : std::int_range(0, 10, 2)) {
         std::println(i)
     }
     
-    for (argument in arguments) {
+    for (argument : arguments) {
         std::println(argument)
     }
     
@@ -57,3 +57,15 @@ std::println(asterisk*)
 std::println(dollar$)
 std::println(question?)
 ```
+
+# TODO
+- [x] Lexing
+- [x] Parsing
+- [x] Interpreting
+- [x] Variables (`mut`, `const`)
+    - [ ] Actually enforce `const` variables. (No error is thrown.) 
+- [x] Basic Types
+- [ ] Dictionaries / Maps
+- [x] Tasks
+- [ ] Enums
+- [ ] Add more to this TODO list

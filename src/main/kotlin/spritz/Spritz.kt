@@ -93,6 +93,7 @@ class Spritz {
     fun loadStandard(): Spritz {
         load(Standard, "std")
 
+
         return this
     }
 

@@ -95,7 +95,7 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
         return result.success(null)
     }
 
-    override fun matchesType(type: Value) = super.matchesType(type) || type is PrimitiveReferenceValue && type.type == "task"
+    override fun matchesType(type: Value) = super.matchesType(type) || type is PrimitiveReferenceValue && type.type == "method"
 
     override fun toString() = "($type: $identifier)"
 

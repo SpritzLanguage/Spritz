@@ -39,9 +39,9 @@ class Table(val parent: Table? = null) {
         ))
     }
 
-    fun set(symbol: Symbol, context: Context, declaration: Boolean): SetResult {
+    fun set(symbol: Symbol, context: Context, declaration: Boolean, forced: Boolean = false): SetResult {
         if (symbols.any { it.identifier == symbol.identifier }) {
-            return if (declaration) {
+            return if (declaration && !forced) {
                 SetResult(
                     null,
                     DualDeclarationError(

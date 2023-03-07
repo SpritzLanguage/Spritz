@@ -3,6 +3,7 @@ package spritz.interpreter
 import spritz.error.Error
 import spritz.error.interpreting.IllegalOperationError
 import spritz.error.interpreting.NodeIntepreterNotFoundError
+import spritz.error.interpreting.TypeMismatchError
 import spritz.interpreter.context.Context
 import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
@@ -12,6 +13,7 @@ import spritz.util.type
 import spritz.value.NullValue
 import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
+import spritz.value.bool.BoolValue
 import spritz.value.container.DefinedContainerValue
 import spritz.value.list.ListValue
 import spritz.value.number.ByteValue
@@ -22,7 +24,6 @@ import spritz.value.symbols.Symbol
 import spritz.value.symbols.SymbolData
 import spritz.value.symbols.Table
 import spritz.value.task.DefinedTaskValue
-import spritz.value.task.TaskValue
 
 /**
  * @author surge
@@ -38,7 +39,7 @@ class Interpreter {
         // primitives
         NumberNode::class.java to { node: Node, context: Context, referenceContext: Context -> number(node as NumberNode, context) },
         ListNode::class.java to { node: Node, context: Context, referenceContext: Context -> list(node as ListNode, context) },
-        StringNode::class.java to { node: Node, context: Context, referenceContext: Context -> string(node as StringNode, context) },
+        StringNode::class.java to { node: Node, context: Context, referenceContext: Context -> string(node as StringNode, context, referenceContext) },
 
         // values
         AssignmentNode::class.java to { node: Node, context: Context, referenceContext: Context -> assignment(node as AssignmentNode, context) },
@@ -48,6 +49,8 @@ class Interpreter {
         TaskCallNode::class.java to { node: Node, context: Context, referenceContext: Context -> callTask(node as TaskCallNode, context, referenceContext) },
 
         // branch control
+        ForNode::class.java to { node: Node, context: Context, referenceContext: Context -> `for`(node as ForNode, context) },
+        WhileNode::class.java to { node: Node, context: Context, referenceContext: Context -> `while`(node as WhileNode, context) },
         ReturnNode::class.java to { node: Node, context: Context, referenceContext: Context -> callReturn(node as ReturnNode, context) }
     )
 
@@ -200,8 +203,26 @@ class Interpreter {
         return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(context))
     }
 
-    private fun string(node: StringNode, context: Context): RuntimeResult {
-        return RuntimeResult().success(StringValue(node.value.value.toString()).positioned(node.start, node.end).givenContext(context))
+    private fun string(node: StringNode, context: Context, referenceContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        var reference = StringValue(node.value.value.toString()).positioned(node.start, node.end).givenContext(context)
+
+        node.child?.let {
+            val childContext = Context(reference.type)
+
+            childContext.table = reference.table
+
+            val child = result.register(this.visit(it, childContext, referenceContext))
+
+            if (result.shouldReturn()) {
+                return result
+            }
+
+            reference = child!!
+        }
+
+        return result.success(reference)
     }
 
     private fun assignment(node: AssignmentNode, context: Context): RuntimeResult {
@@ -494,7 +515,21 @@ class Interpreter {
             executed = NullValue()
         }
 
-        executed = executed.clone().positioned(node.start, node.end).givenContext(context)
+        node.child?.let {
+            val childContext = Context(executed!!.type)
+
+            childContext.table = executed!!.table
+
+            val child = result.register(this.visit(it, childContext, referenceContext))
+
+            if (result.shouldReturn()) {
+                return result
+            }
+
+            executed = child!!
+        }
+
+        executed = executed!!.clone().positioned(node.start, node.end).givenContext(context)
 
         return result.success(executed)
     }
@@ -515,6 +550,103 @@ class Interpreter {
         }
 
         return result.successReturn(value)
+    }
+
+    private fun `for`(node: ForNode, context: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val list = result.register(this.visit(node.expression, context))
+
+        // handle error before type mismatch
+        if (result.shouldReturn()) {
+            return result
+        }
+
+        if (list !is ListValue) {
+            return result.failure(TypeMismatchError(
+                "Expected 'list' not ${list?.type ?: "<JVM NULL>"}",
+                node.expression.start,
+                node.expression.end,
+                context
+            ))
+        }
+
+        val scope = Context("scope", parent = context).givenTable(Table(context.table))
+
+        val elements = mutableListOf<Value>()
+
+        for (i in list.elements) {
+            scope.table.set(Symbol(node.identifier.value.toString(), i, SymbolData(immutable = true, node.identifier.start, node.identifier.end)), context, declaration = true, forced = true)
+
+            val body = result.register(this.visit(node.body, scope))
+
+            if (result.shouldReturn() && !result.shouldContinue && !result.shouldBreak) {
+                return result
+            }
+
+            if (result.shouldContinue) {
+                continue
+            }
+
+            if (result.shouldBreak) {
+                break
+            }
+
+            elements.add(body!!)
+        }
+
+        return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(scope))
+    }
+
+    private fun `while`(node: WhileNode, context: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val scope = Context("scope", parent = context).givenTable(Table(context.table))
+
+        val elements = mutableListOf<Value>()
+
+        while (true) {
+            val scope = Context("scope", context)
+            scope.table = Table(parent = context.table)
+
+            val condition = result.register(this.visit(node.expression, context))
+
+            // handle error before type mismatch
+            if (result.shouldReturn()) {
+                return result
+            }
+
+            if (condition !is BoolValue) {
+                return result.failure(TypeMismatchError(
+                    "Expected 'bool' not ${condition?.type ?: "<JVM NULL>"}",
+                    node.expression.start,
+                    node.expression.end,
+                    context
+                ))
+            }
+
+            if (!condition.value) {
+                break
+            }
+
+            val value = result.register(this.visit(node.body, scope))
+
+            if (result.shouldReturn() && !result.shouldContinue && !result.shouldBreak) {
+                return result
+            }
+
+            if (result.shouldContinue) {
+                continue
+            }
+
+            if (result.shouldBreak) {
+                break
+            }
+
+            elements.add(value!!)
+        }
+
+        return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(scope))
     }
 
 }

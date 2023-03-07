@@ -1,6 +1,13 @@
 package spritz.builtin
 
+import spritz.api.annotations.Identifier
+import spritz.api.result.Result
+import spritz.api.result.Success
 import spritz.value.Value
+import spritz.value.list.ListValue
+import spritz.value.number.FloatValue
+import spritz.value.number.IntValue
+import spritz.value.number.NumberValue
 
 /**
  * @author surge
@@ -21,6 +28,29 @@ object Standard {
 
     fun readln(): String {
         return kotlin.io.readln()
+    }
+
+    @Identifier("int_range")
+    fun intRange(start: IntValue, end: IntValue, step: IntValue): Result {
+        val elements = mutableListOf<IntValue>()
+
+        if (start.value > end.value) {
+            var i = start.value
+
+            while (i > end.value) {
+                elements.add(IntValue((i)))
+                i -= step.value
+            }
+        } else {
+            var i = start.value
+
+            while (i < end.value) {
+                elements.add(IntValue((i)))
+                i += step.value
+            }
+        }
+
+        return Success(ListValue(elements.toMutableList()))
     }
 
 }

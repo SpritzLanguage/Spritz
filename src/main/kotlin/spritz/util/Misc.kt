@@ -24,6 +24,10 @@ val KEYWORDS = hashMapOf(
     "mutable" to "mut",
     "constant" to "const",
 
+    // loops
+    "for" to "for",
+    "while" to "while",
+
     // branch control statements
     "return" to "return",
     "continue" to "continue",
@@ -38,7 +42,8 @@ val TYPES = hashMapOf(
     "boolean" to "bool",
     "list" to "list",
     "dictionary" to "dict",
-    "byte" to "byte"
+    "byte" to "byte",
+    "method" to "method"
 )
 
 fun keyword(input: String) = KEYWORDS.containsValue(input) || TYPES.containsValue(input)

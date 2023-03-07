@@ -131,6 +131,9 @@ class Lexer(val name: String, val contents: String) {
                     } else if (this.currentChar == '=') {
                         type = DECREASE_BY
                         this.advance()
+                    } else if (this.currentChar == '>') {
+                        type = ARROW
+                        this.advance()
                     }
 
                     tokens.add(Token(type, null, start, this.position))
@@ -156,12 +159,18 @@ class Lexer(val name: String, val contents: String) {
 
                     this.advance()
 
-                    if (this.currentChar == '=') {
-                        type = DIVIDE_BY
-                        this.advance()
-                    }
+                    if (this.currentChar == '/') {
+                        while (this.currentChar != null && this.currentChar!! !in System.lineSeparator()) {
+                            this.advance()
+                        }
+                    } else {
+                        if (this.currentChar == '=') {
+                            type = DIVIDE_BY
+                            this.advance()
+                        }
 
-                    tokens.add(Token(type, null, start, this.position))
+                        tokens.add(Token(type, null, start, this.position))
+                    }
                 }
 
                 '%' -> {

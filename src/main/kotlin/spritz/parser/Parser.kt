@@ -477,6 +477,26 @@ class Parser(val tokens: List<Token<*>>) {
             return result.success(container as Node)
         }
 
+        if (token.matches("for")) {
+            val `for` = result.register(this.`for`())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(`for` as Node)
+        }
+
+        if (token.matches("while")) {
+            val `while` = result.register(this.`while`())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(`while` as Node)
+        }
+
         return result.failure(ParsingError(
             "Expected int, float, '+', '-' or '('",
             token.start,
@@ -727,6 +747,200 @@ class Parser(val tokens: List<Token<*>>) {
         }
 
         return result.success(ContainerDefineNode(name, constructor, body, start, this.currentToken.end))
+    }
+
+    private fun `for`(): ParseResult {
+        val result = ParseResult()
+        val start = this.currentToken.start
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != OPEN_PARENTHESES) {
+            return result.failure(ParsingError(
+                "Expected '('",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != IDENTIFIER) {
+            return result.failure(ParsingError(
+                "Expected identifier",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        val identifier = this.currentToken
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != COLON) {
+            return result.failure(ParsingError(
+                "Expected ':'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        val expression = result.register(this.expression())
+
+        if (result.error != null) {
+            return result
+        }
+
+        if (this.currentToken.type != CLOSE_PARENTHESES) {
+            return result.failure(ParsingError(
+                "Expected ')'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        if (this.currentToken.type == ARROW) {
+            advanceRegister(result)
+
+            val body = result.register(this.expression())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(ForNode(
+                identifier,
+                expression!!,
+                body!!,
+                start,
+                this.currentToken.end
+            ))
+        }
+
+        if (this.currentToken.type != OPEN_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '{' or '='",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        val body = result.register(this.statements())
+
+        if (result.error != null) {
+            return result
+        }
+
+        body as Node
+
+        if (this.currentToken.type != CLOSE_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '}'",
+                this.currentToken.start,
+                this.currentToken.end,
+            ))
+        }
+
+        advanceRegister(result)
+
+        return result.success(ForNode(
+            identifier,
+            expression!!,
+            body,
+            start,
+            this.currentToken.end
+        ))
+    }
+
+    private fun `while`(): ParseResult {
+        val result = ParseResult()
+        val start = this.currentToken.start
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != OPEN_PARENTHESES) {
+            return result.failure(ParsingError(
+                "Expected '('",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        val expression = result.register(this.expression())
+
+        if (result.error != null) {
+            return result
+        }
+
+        if (this.currentToken.type != CLOSE_PARENTHESES) {
+            return result.failure(ParsingError(
+                "Expected ')'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        if (this.currentToken.type == ARROW) {
+            advanceRegister(result)
+
+            val body = result.register(this.expression())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(WhileNode(
+                expression!!,
+                body!!,
+                start,
+                this.currentToken.end
+            ))
+        }
+
+        if (this.currentToken.type != OPEN_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '{' or '='",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        val body = result.register(this.statements())
+
+        if (result.error != null) {
+            return result
+        }
+
+        body as Node
+
+        if (this.currentToken.type != CLOSE_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '}'",
+                this.currentToken.start,
+                this.currentToken.end,
+            ))
+        }
+
+        advanceRegister(result)
+
+        return result.success(WhileNode(
+            expression!!,
+            body,
+            start,
+            this.currentToken.end
+        ))
     }
 
     private fun binaryOperation(function: () -> ParseResult, operators: HashMap<TokenType, String?>, functionB: () -> ParseResult = function): ParseResult {
