@@ -23,6 +23,8 @@ task main(arguments: list) {
 
     // for (i : std::int_range(54, 65, 1)) -> std::println(i)
 
+    for (i : std::float_range(2.3, 13.4, 3.4)) -> std::println(i)
+
     const bleh = for (i : std::int_range(1, 5, 1)) -> i
 
     std::println(bleh)

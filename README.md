@@ -1,9 +1,12 @@
-<div style="alignment: center">
+<div style="text-align: center">
 
 # Spritz
 <hr/>
 An interpreted programming language written in Kotlin, intended for use as a scripting language in JVM applications
+
+Spritz is still in a development phase and <b> should not </b> be used for production use.
 </div>
+<br/>
 
 ### Sample Code
 

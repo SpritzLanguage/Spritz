@@ -53,4 +53,27 @@ object Standard {
         return Success(ListValue(elements.toMutableList()))
     }
 
+    @Identifier("float_range")
+    fun floatRange(start: FloatValue, end: FloatValue, step: FloatValue): Result {
+        val elements = mutableListOf<FloatValue>()
+
+        if (start.value > end.value) {
+            var i = start.value
+
+            while (i > end.value) {
+                elements.add(FloatValue((i)))
+                i -= step.value
+            }
+        } else {
+            var i = start.value
+
+            while (i < end.value) {
+                elements.add(FloatValue((i)))
+                i += step.value
+            }
+        }
+
+        return Success(ListValue(elements.toMutableList()))
+    }
+
 }
