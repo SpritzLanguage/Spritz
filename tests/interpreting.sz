@@ -52,4 +52,7 @@ task main {
     if (false) std::println("test") else if (c) std::println("test2") else std::println("wowza")
 
     if (false) std::println("test")
+
+    const d = "test"::replace("e", "f")
+    std::println(d)
 }
