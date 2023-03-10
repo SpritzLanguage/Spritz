@@ -33,33 +33,38 @@ class Interpreter {
 
     private val visitors = mapOf(
         // operations
-        BinaryOperationNode::class.java to { node: Node, context: Context, referenceContext: Context -> binaryOperation(node as BinaryOperationNode, context) },
-        UnaryOperationNode::class.java to { node: Node, context: Context, referenceContext: Context -> unaryOperation(node as UnaryOperationNode, context) },
+        BinaryOperationNode::class.java to { node: Node, parentContext: Context, childContext: Context -> binaryOperation(node as BinaryOperationNode, parentContext, childContext) },
+        UnaryOperationNode::class.java to { node: Node, parentContext: Context, childContext: Context -> unaryOperation(node as UnaryOperationNode, parentContext, childContext) },
 
         // primitives
-        NumberNode::class.java to { node: Node, context: Context, referenceContext: Context -> number(node as NumberNode, context) },
-        ListNode::class.java to { node: Node, context: Context, referenceContext: Context -> list(node as ListNode, context) },
-        StringNode::class.java to { node: Node, context: Context, referenceContext: Context -> string(node as StringNode, context, referenceContext) },
+        NumberNode::class.java to { node: Node, parentContext: Context, childContext: Context -> number(node as NumberNode, parentContext, childContext) },
+        ListNode::class.java to { node: Node, parentContext: Context, childContext: Context -> list(node as ListNode, parentContext, childContext) },
+        StringNode::class.java to { node: Node, parentContext: Context, childContext: Context -> string(node as StringNode, parentContext, childContext) },
 
         // values
-        AssignmentNode::class.java to { node: Node, context: Context, referenceContext: Context -> assignment(node as AssignmentNode, context) },
-        AccessNode::class.java to { node: Node, context: Context, referenceContext: Context -> access(node as AccessNode, context, referenceContext) },
-        TaskDefineNode::class.java to { node: Node, context: Context, referenceContext: Context -> defineTask(node as TaskDefineNode, context) },
-        ContainerDefineNode::class.java to { node: Node, context: Context, referenceContext: Context -> defineContainer(node as ContainerDefineNode, context) },
-        TaskCallNode::class.java to { node: Node, context: Context, referenceContext: Context -> callTask(node as TaskCallNode, context, referenceContext) },
+        AssignmentNode::class.java to { node: Node, parentContext: Context, childContext: Context -> assignment(node as AssignmentNode, parentContext, childContext) },
+        AccessNode::class.java to { node: Node, parentContext: Context, childContext: Context -> access(node as AccessNode, parentContext, childContext) },
+        TaskDefineNode::class.java to { node: Node, parentContext: Context, childContext: Context -> defineTask(node as TaskDefineNode, parentContext, childContext) },
+        ContainerDefineNode::class.java to { node: Node, parentContext: Context, childContext: Context -> defineContainer(node as ContainerDefineNode, parentContext, childContext) },
+        TaskCallNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callTask(node as TaskCallNode, parentContext, childContext) },
 
         // branch control
-        ForNode::class.java to { node: Node, context: Context, referenceContext: Context -> `for`(node as ForNode, context) },
-        WhileNode::class.java to { node: Node, context: Context, referenceContext: Context -> `while`(node as WhileNode, context) },
-        ReturnNode::class.java to { node: Node, context: Context, referenceContext: Context -> callReturn(node as ReturnNode, context) }
+        ForNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `for`(node as ForNode, parentContext, childContext) },
+        WhileNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `while`(node as WhileNode, parentContext, childContext) },
+        ReturnNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callReturn(node as ReturnNode, parentContext, childContext) }
     )
 
-    fun visit(node: Node, context: Context, referenceContext: Context = context): RuntimeResult {
-        val result = visitors[node::class.java]?.invoke(node, context, referenceContext) ?: return RuntimeResult().failure(NodeIntepreterNotFoundError(
+    /**
+     * Visits the method that is relevant to the given [node]. The context surrounding
+     * variable accessing should be provided by [parentContext], and any accessing should
+     * only be provided with symbols from [childContext]
+     */
+    fun visit(node: Node, parentContext: Context, childContext: Context = parentContext): RuntimeResult {
+        val result = visitors[node::class.java]?.invoke(node, parentContext, childContext) ?: return RuntimeResult().failure(NodeIntepreterNotFoundError(
             "Interpreter method not found for ${node::class.java.simpleName}!",
             node.start,
             node.end,
-            context
+            parentContext
         ))
 
         if (result.error != null) {
@@ -69,7 +74,7 @@ class Interpreter {
         return result
     }
 
-    private fun binaryOperation(node: BinaryOperationNode, context: Context): RuntimeResult {
+    private fun binaryOperation(node: BinaryOperationNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val left = result.register(this.visit(node.left, context))
@@ -123,7 +128,7 @@ class Interpreter {
         }
     }
 
-    private fun unaryOperation(node: UnaryOperationNode, context: Context): RuntimeResult {
+    private fun unaryOperation(node: UnaryOperationNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val value = result.register(this.visit(node.value, context))
@@ -176,17 +181,27 @@ class Interpreter {
         }
     }
 
-    private fun number(node: NumberNode, context: Context): RuntimeResult {
-        val value = when (node.token.type) {
+    private fun number(node: NumberNode, context: Context, childContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        var reference = when (node.token.type) {
             BYTE -> ByteValue(node.token.value.toString().toByte())
             INT -> IntValue(node.token.value.toString().toInt())
             else -> FloatValue(node.token.value.toString().toFloat())
         }.positioned(node.start, node.end).givenContext(context)
 
-        return RuntimeResult().success(value)
+        val child = result.register(child(node, reference, context))
+
+        if (result.shouldReturn()) {
+            return result
+        }
+
+        reference = child!!
+
+        return result.success(reference)
     }
 
-    private fun list(node: ListNode, context: Context): RuntimeResult {
+    private fun list(node: ListNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
         val elements = arrayListOf<Value>()
 
@@ -203,29 +218,23 @@ class Interpreter {
         return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(context))
     }
 
-    private fun string(node: StringNode, context: Context, referenceContext: Context): RuntimeResult {
+    private fun string(node: StringNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         var reference = StringValue(node.value.value.toString()).positioned(node.start, node.end).givenContext(context)
 
-        node.child?.let {
-            val childContext = Context(reference.type)
+        val child = result.register(child(node, reference, context))
 
-            childContext.table = reference.table
-
-            val child = result.register(this.visit(it, childContext, referenceContext))
-
-            if (result.shouldReturn()) {
-                return result
-            }
-
-            reference = child!!
+        if (result.shouldReturn()) {
+            return result
         }
+
+        reference = child!!
 
         return result.success(reference)
     }
 
-    private fun assignment(node: AssignmentNode, context: Context): RuntimeResult {
+    private fun assignment(node: AssignmentNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val name = node.name.value as String
@@ -375,13 +384,13 @@ class Interpreter {
         return result.success(set.value!!)
     }
 
-    private fun access(node: AccessNode, context: Context, referenceContext: Context): RuntimeResult {
+    private fun access(node: AccessNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         var reference: Value = if (type(node.identifier.value as String)) {
             PrimitiveReferenceValue(node.identifier.value)
         } else {
-            val get = context.table.get(node.identifier.value, node.identifier.start, node.identifier.end, context)
+            val get = childContext.table.get(node.identifier.value, node.identifier.start, node.identifier.end, childContext)
 
             if (get.error != null) {
                 return result.failure(get.error)
@@ -390,24 +399,18 @@ class Interpreter {
             get.value!!
         }
 
-        node.child?.let {
-            val childContext = Context(reference.type)
+        val child = result.register(child(node, reference, context))
 
-            childContext.table = reference.table
-
-            val child = result.register(this.visit(it, childContext, referenceContext))
-
-            if (result.shouldReturn()) {
-                return result
-            }
-
-            reference = child!!
+        if (result.shouldReturn()) {
+            return result
         }
+
+        reference = child!!
 
         return result.success(reference)
     }
 
-    private fun defineTask(node: TaskDefineNode, context: Context): RuntimeResult {
+    private fun defineTask(node: TaskDefineNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val name = node.identifier
@@ -450,7 +453,7 @@ class Interpreter {
         return result.success(task)
     }
 
-    private fun defineContainer(node: ContainerDefineNode, context: Context): RuntimeResult {
+    private fun defineContainer(node: ContainerDefineNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val name = node.name.value as String
@@ -482,13 +485,13 @@ class Interpreter {
         return result.success(container)
     }
 
-    private fun callTask(node: TaskCallNode, context: Context, referenceContext: Context): RuntimeResult {
+    private fun callTask(node: TaskCallNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val passedArguments = mutableListOf<Value>()
 
         node.arguments.forEach {
-            val value = result.register(this.visit(it, referenceContext))
+            val value = result.register(this.visit(it, context))
 
             if (result.error != null) {
                 return result
@@ -497,7 +500,7 @@ class Interpreter {
             passedArguments.add(value!!)
         }
 
-        val target = result.register(this.visit(node.target, context))
+        val target = result.register(this.visit(node.target, childContext))
 
         if (result.shouldReturn()) {
             return result
@@ -520,7 +523,7 @@ class Interpreter {
 
             childContext.table = executed!!.table
 
-            val child = result.register(this.visit(it, childContext, referenceContext))
+            val child = result.register(this.visit(it, childContext))
 
             if (result.shouldReturn()) {
                 return result
@@ -534,7 +537,7 @@ class Interpreter {
         return result.success(executed)
     }
 
-    private fun callReturn(node: ReturnNode, context: Context): RuntimeResult {
+    private fun callReturn(node: ReturnNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val value: Value = if (node.value != null) {
@@ -552,7 +555,7 @@ class Interpreter {
         return result.successReturn(value)
     }
 
-    private fun `for`(node: ForNode, context: Context): RuntimeResult {
+    private fun `for`(node: ForNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val list = result.register(this.visit(node.expression, context))
@@ -598,7 +601,7 @@ class Interpreter {
         return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(scope))
     }
 
-    private fun `while`(node: WhileNode, context: Context): RuntimeResult {
+    private fun `while`(node: WhileNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val scope = Context("scope", parent = context).givenTable(Table(context.table))
@@ -647,6 +650,25 @@ class Interpreter {
         }
 
         return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(scope))
+    }
+
+    private fun child(node: Node, reference: Value, context: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        if (node.child != null) {
+            val childReferenceContext = Context(reference.identifier)
+            childReferenceContext.table = reference.table
+
+            val child = result.register(this.visit(node.child!!, context, childReferenceContext))
+
+            if (result.shouldReturn()) {
+                return result
+            }
+
+            return result.success(child!!)
+        }
+
+        return result.success(reference)
     }
 
 }

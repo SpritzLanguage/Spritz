@@ -81,12 +81,6 @@ class Lexer(val name: String, val contents: String) {
                         type = BYTE
                     }
 
-                    /**
-                     * TODO: Instead of adding `INT` and `FLOAT` tokens, transform them to classes.
-                     * This will be similar to Kotlin, where `1.toString()` (etc) is perfectly valid.
-                     * This will come into play once variables and types are re-added.
-                     */
-
                     tokens.add(Token(type, result, start, this.position))
                 }
 
@@ -159,7 +153,23 @@ class Lexer(val name: String, val contents: String) {
 
                     this.advance()
 
-                    if (this.currentChar == '/') {
+                    if (this.currentChar == '*') {
+                        this.advance()
+
+                        while (this.currentChar != null) {
+                            if (this.currentChar == '*') {
+                                this.advance()
+
+                                if (this.currentChar == '/') {
+                                    this.advance()
+                                    break
+                                }
+                            } else {
+                                this.advance()
+                            }
+                        }
+
+                    } else if (this.currentChar == '/') {
                         while (this.currentChar != null && this.currentChar!! !in System.lineSeparator()) {
                             this.advance()
                         }

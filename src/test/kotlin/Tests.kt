@@ -67,7 +67,7 @@ fun main() {
 
     val main = interpretingTest.second.get("main").value as DefinedTaskValue
 
-    val result = main.execute(arrayListOf(ListValue(mutableListOf(BoolValue(true)))))
+    val result = main.execute(arrayListOf())
 
     if (result.error != null) {
         println(result.error)

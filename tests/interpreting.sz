@@ -1,44 +1,38 @@
-container Lliw(red: int, green: int, blue: int, alpha: int) {
+container Holder(a)
 
-    task<int> combine() = this::red + this::green + this::blue + this::alpha
+task callable {
+    std::println("from callable")
+}
+
+/**
+ * Obviously doesn't actually do anything, just an example
+ */
+container Window(render) {
+
+    task run {
+        while (true) {
+            render()
+        }
+    }
 
 }
 
-task main(arguments: list) {
-    const lliw = Lliw(255, 255, 255, 255)
+task render {
+    std::println("rendering")
+}
 
-    std::println(lliw::combine())
+task main {
+    // this is the main entrypoint for the program
+    // this is called when the program is started
 
-    lliw::red = 3
+    mut a = "test"
+    std::println("hello, world!" + a)
 
-    std::println(lliw::red)
+    const b = Holder(callable)
+    b::a()
 
-    std::println("test"::get(1))
+    std::println("test"::substring(1, 2))
 
-    std::println(lliw::red)
-
-    for (i : std::int_range(0, 5, 2)) {
-        std::println(i)
-    }
-
-    // for (i : std::int_range(54, 65, 1)) -> std::println(i)
-
-    for (i : std::float_range(2.3, 13.4, 3.4)) -> std::println(i)
-
-    const bleh = for (i : std::int_range(1, 5, 1)) -> i
-
-    std::println(bleh)
-
-    mut mutable = 0
-
-    while (mutable < 5) {
-        std::println(mutable)
-        mutable++
-    }
-
-    mutable = 0
-
-    while (mutable < 10) -> mutable++
-
-    std::println(mutable)
+    const window = Window(render)
+    window::run()
 }

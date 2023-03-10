@@ -15,9 +15,6 @@ import spritz.value.number.NumberValue
  */
 object Standard {
 
-    @JvmField
-    val a = 55427
-
     fun print(input: Value) {
         kotlin.io.print(input)
     }
