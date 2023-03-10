@@ -2,6 +2,7 @@ package spritz.value.list
 
 import spritz.Spritz
 import spritz.api.annotations.Excluded
+import spritz.api.annotations.Identifier
 import spritz.interpreter.context.Context
 import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
@@ -28,12 +29,30 @@ class ListValue(val elements: MutableList<Value>) : Value("list") {
             return value
         }
 
+        @Identifier("remove_value")
+        fun removeValue(value: Value) {
+            this.list.elements.remove(value)
+        }
+
         fun remove(index: Int) {
             this.list.elements.removeAt(index)
         }
 
-        fun size(): Int {
-            return this.list.elements.size
+        fun size(): Int = this.list.elements.size
+
+        @Identifier("is_empty")
+        fun isEmpty(): Boolean = this.list.elements.isEmpty()
+
+        @Identifier("is_not_empty")
+        fun isNotEmpty(): Boolean = this.list.elements.isNotEmpty()
+
+        fun clear() {
+            this.list.elements.clear()
+        }
+
+        @Identifier("index_of")
+        fun indexOf(value: Value): Int {
+            return this.list.elements.indexOf(value)
         }
 
     }

@@ -1,5 +1,8 @@
 package spritz.value.task
 
+import spritz.Spritz
+import spritz.api.annotations.Excluded
+import spritz.api.annotations.Identifier
 import spritz.error.Error
 import spritz.error.interpreting.CallArgumentMismatchError
 import spritz.error.interpreting.TypeMismatchError
@@ -9,6 +12,7 @@ import spritz.lexer.position.Position
 import spritz.util.RequiredArgument
 import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
+import spritz.value.string.StringValue
 import spritz.value.symbols.Symbol
 import spritz.value.symbols.SymbolData
 import spritz.value.symbols.Table
@@ -18,6 +22,10 @@ import spritz.value.symbols.Table
  * @since 03/03/2023
  */
 open class TaskValue(identifier: String, type: String) : Value(type, identifier = identifier) {
+
+    protected fun load() {
+        Spritz.loadInto(Companion(this), table, Context("task"))
+    }
 
     protected fun generateContext(): Context {
         val new = Context(this.identifier, this.context, this.start)
@@ -98,5 +106,11 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
     override fun matchesType(type: Value) = super.matchesType(type) || type is PrimitiveReferenceValue && type.type == "method"
 
     override fun toString() = "($type: $identifier)"
+
+    class Companion(@Excluded val task: TaskValue) {
+
+        val name = task.identifier
+
+    }
 
 }

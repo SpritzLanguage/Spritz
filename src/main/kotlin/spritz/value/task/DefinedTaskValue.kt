@@ -17,6 +17,10 @@ import spritz.value.Value
  */
 class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>, val body: Node, val expression: Boolean, val returnType: Value?) : TaskValue(identifier, "DefinedTask") {
 
+    init {
+        load()
+    }
+
     override fun execute(passed: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
         val interpreter = Interpreter()

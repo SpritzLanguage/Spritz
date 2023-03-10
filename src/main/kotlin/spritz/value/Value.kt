@@ -1,5 +1,8 @@
 package spritz.value
 
+import spritz.api.Coercion
+import spritz.api.annotations.Excluded
+import spritz.builtin.Standard
 import spritz.error.Error
 import spritz.error.interpreting.IllegalOperationError
 import spritz.interfaces.Cloneable
@@ -9,6 +12,7 @@ import spritz.lexer.position.LinkPosition
 import spritz.lexer.position.Position
 import spritz.lexer.token.Token
 import spritz.value.bool.BoolValue
+import spritz.value.symbols.Symbol
 import spritz.value.symbols.Table
 
 /**

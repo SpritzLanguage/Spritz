@@ -55,4 +55,21 @@ task main {
 
     const d = "test"::replace("e", "f")
     std::println(d)
+
+    std::println(render::name)
+
+    const e = [1, 2, 3]
+    std::println(e::is_empty())
+
+    for (element : e) {
+        std::println(e::index_of(element))
+    }
+
+    e::clear()
+
+    std::println(e::is_empty())
+
+    e::add(5)
+
+    std::println(e::is_not_empty())
 }
