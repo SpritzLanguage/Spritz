@@ -113,6 +113,8 @@ class Interpreter {
 
             EQUALITY -> left.equality(right, node.operator)
             INEQUALITY -> left.inequality(right, node.operator)
+            ROUGH_EQUALITY -> left.roughEquality(right, node.operator)
+            ROUGH_INEQUALITY -> left.roughInequality(right, node.operator)
             ARROW_LEFT -> left.lessThan(right, node.operator)
             ARROW_RIGHT -> left.greaterThan(right, node.operator)
             LESS_THAN_OR_EQUAL_TO -> left.lessThanOrEqualTo(right, node.operator)

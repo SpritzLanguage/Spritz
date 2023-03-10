@@ -34,6 +34,8 @@ enum class TokenType {
     // comparison operators
     EQUALITY,
     INEQUALITY,
+    ROUGH_EQUALITY,
+    ROUGH_INEQUALITY,
     ARROW_LEFT,
     ARROW_RIGHT,
     LESS_THAN_OR_EQUAL_TO,

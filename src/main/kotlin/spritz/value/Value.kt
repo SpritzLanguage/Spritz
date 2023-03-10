@@ -43,6 +43,8 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
 
     open fun equality(other: Value, operator: Token<*>): Pair<BoolValue?, Error?> = Pair(BoolValue(this == other), null)
     open fun inequality(other: Value, operator: Token<*>): Pair<Value?, Error?> = Pair(BoolValue(this != other), null)
+    open fun roughEquality(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
+    open fun roughInequality(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun lessThan(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun greaterThan(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun lessThanOrEqualTo(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)

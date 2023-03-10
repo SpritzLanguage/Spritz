@@ -379,8 +379,24 @@ class Lexer(val name: String, val contents: String) {
                 }
 
                 '~' -> {
-                    tokens.add(Token(BIN_COMPLEMENT, null, this.position))
+                    var type = BIN_COMPLEMENT
+                    val start = this.position.clone()
+
                     this.advance()
+
+                    if (this.currentChar == '!') {
+                        this.advance()
+
+                        if (this.currentChar == '=') {
+                            type = ROUGH_INEQUALITY
+                            this.advance()
+                        }
+                    } else if (this.currentChar == '=') {
+                        type = ROUGH_EQUALITY
+                        this.advance()
+                    }
+
+                    tokens.add(Token(type, null, start, this.position))
                 }
 
                 else -> {

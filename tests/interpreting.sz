@@ -37,6 +37,8 @@ task main {
 
     // window::run()
 
+    std::println("tEsT" ~= "test")
+
     if (false) {
         std::println("test")
     } else if (false) {

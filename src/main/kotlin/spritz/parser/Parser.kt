@@ -200,6 +200,8 @@ class Parser(val tokens: List<Token<*>>) {
         val node = result.register(this.binaryOperation({ this.arithmeticExpression() }, hashMapOf(
             EQUALITY to null,
             INEQUALITY to null,
+            ROUGH_EQUALITY to null,
+            ROUGH_INEQUALITY to null,
             ARROW_LEFT to null,
             LESS_THAN_OR_EQUAL_TO to null,
             ARROW_RIGHT to null,
