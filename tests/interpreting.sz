@@ -34,5 +34,20 @@ task main {
     std::println("test"::substring(1, 2))
 
     const window = Window(render)
-    window::run()
+
+    // window::run()
+
+    if (false) {
+        std::println("test")
+    } else if (false) {
+        std::println("test2")
+    } else {
+        std::println("woah")
+    }
+
+    const c = true
+
+    if (false) std::println("test") else if (c) std::println("test2") else std::println("wowza")
+
+    if (false) std::println("test")
 }

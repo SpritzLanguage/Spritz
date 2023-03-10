@@ -8,6 +8,7 @@ import spritz.interpreter.context.Context
 import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
 import spritz.parser.nodes.*
+import spritz.parser.nodes.condition.ConditionNode
 import spritz.util.RequiredArgument
 import spritz.util.type
 import spritz.value.NullValue
@@ -49,6 +50,7 @@ class Interpreter {
         TaskCallNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callTask(node as TaskCallNode, parentContext, childContext) },
 
         // branch control
+        ConditionNode::class.java to { node: Node, parentContext: Context, childContext: Context -> condition(node as ConditionNode, parentContext, childContext) },
         ForNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `for`(node as ForNode, parentContext, childContext) },
         WhileNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `while`(node as WhileNode, parentContext, childContext) },
         ReturnNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callReturn(node as ReturnNode, parentContext, childContext) }
@@ -650,6 +652,48 @@ class Interpreter {
         }
 
         return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(scope))
+    }
+
+    private fun condition(node: ConditionNode, context: Context, childContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        node.cases.forEach { case ->
+            if (!case.`else`) {
+                val condition = result.register(this.visit(case.condition!!, context))
+
+                if (result.shouldReturn()) {
+                    return result
+                }
+
+                if (condition !is BoolValue) {
+                    return result.failure(
+                        TypeMismatchError(
+                            "Expected 'bool' not ${condition?.type ?: "<JVM NULL>"}",
+                            case.node.start,
+                            case.node.end,
+                            context
+                        )
+                    )
+                }
+
+                if (!condition.value) {
+                    return@forEach
+                }
+            }
+
+            val scope = Context("scope", context)
+            scope.table = Table(context.table)
+
+            val interpreted = result.register(this.visit(case.node, scope))
+
+            if (result.shouldReturn()) {
+                return result
+            }
+
+            return result.success(interpreted!!)
+        }
+
+        return result.success(NullValue())
     }
 
     private fun child(node: Node, reference: Value, context: Context): RuntimeResult {

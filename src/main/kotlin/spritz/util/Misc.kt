@@ -29,6 +29,8 @@ val KEYWORDS = hashMapOf(
     "while" to "while",
 
     // branch control statements
+    "conditional" to "if",
+    "conditional_default" to "else",
     "return" to "return",
     "continue" to "continue",
     "break" to "break"

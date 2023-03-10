@@ -6,6 +6,8 @@ import spritz.lexer.token.TokenType
 import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
 import spritz.parser.nodes.*
+import spritz.parser.nodes.condition.Case
+import spritz.parser.nodes.condition.ConditionNode
 import spritz.util.*
 
 /**
@@ -455,6 +457,16 @@ class Parser(val tokens: List<Token<*>>) {
         if (type(token.value.toString())) {
             advanceRegister(result)
             return result.success(AccessNode(token))
+        }
+
+        if (token.matches("if")) {
+            val condition = result.register(this.conditional())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(condition as Node)
         }
 
         if (token.matches("task")) {
@@ -941,6 +953,192 @@ class Parser(val tokens: List<Token<*>>) {
             start,
             this.currentToken.end
         ))
+    }
+
+    private fun conditional(): ParseResult {
+        val result = ParseResult()
+
+        val cases = result.register(cases("if"))
+
+        if (result.error != null) {
+            return result
+        }
+
+        return result.success(cases!!)
+    }
+
+    private fun cases(keyword: String): ParseResult {
+        val result = ParseResult()
+        val cases = mutableListOf<Case>()
+
+        if (!this.currentToken.matches(keyword)) {
+            return result.failure(ParsingError(
+                "Expected '$keyword'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != OPEN_PARENTHESES) {
+            return result.failure(ParsingError(
+                "Expected '('",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        val condition = result.register(this.expression())
+
+        if (result.error != null) {
+            return result
+        }
+        
+        if (this.currentToken.type != CLOSE_PARENTHESES) {
+            return result.failure(ParsingError(
+                "Expected ')'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+        
+        advanceRegister(result)
+
+        if (this.currentToken.type == OPEN_BRACE) {
+            advanceRegister(result)
+
+            val statements = result.register(this.statements())
+
+            if (result.error != null) {
+                return result
+            }
+
+            cases.add(Case(condition, statements!!))
+
+            if (this.currentToken.type != CLOSE_BRACE) {
+                return result.failure(ParsingError(
+                    "Expected '}'",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
+            }
+
+            advanceRegister(result)
+        } else {
+            val statement = result.register(this.statement())
+
+            if (result.error != null) {
+                return result
+            }
+
+            cases.add(Case(condition, statement!!))
+        }
+
+        // else if and else
+        while (this.currentToken.matches("else")) {
+            advanceRegister(result)
+
+            // else if
+            if (this.currentToken.matches("if")) {
+                advanceRegister(result)
+
+                if (this.currentToken.type != OPEN_PARENTHESES) {
+                    return result.failure(ParsingError(
+                        "Expected '('",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                advanceRegister(result)
+
+                val condition = result.register(this.expression())
+
+                if (result.error != null) {
+                    return result
+                }
+
+                if (this.currentToken.type != CLOSE_PARENTHESES) {
+                    return result.failure(ParsingError(
+                        "Expected ')'",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                advanceRegister(result)
+
+                if (this.currentToken.type == OPEN_BRACE) {
+                    advanceRegister(result)
+
+                    val statements = result.register(this.statements())
+
+                    if (result.error != null) {
+                        return result
+                    }
+
+                    cases.add(Case(condition, statements!!))
+
+                    if (this.currentToken.type != CLOSE_BRACE) {
+                        return result.failure(ParsingError(
+                            "Expected '}'",
+                            this.currentToken.start,
+                            this.currentToken.end
+                        ))
+                    }
+
+                    advanceRegister(result)
+                } else {
+                    val statement = result.register(this.statement())
+
+                    if (result.error != null) {
+                        return result
+                    }
+
+                    cases.add(Case(condition, statement!!))
+                }
+            }
+
+            // else
+            else {
+                if (this.currentToken.type == OPEN_BRACE) {
+                    advanceRegister(result)
+
+                    val statements = result.register(this.statements())
+
+                    if (result.error != null) {
+                        return result
+                    }
+
+                    cases.add(Case(condition, statements!!, true))
+
+                    if (this.currentToken.type != CLOSE_BRACE) {
+                        return result.failure(ParsingError(
+                            "Expected '}'",
+                            this.currentToken.start,
+                            this.currentToken.end
+                        ))
+                    }
+
+                    advanceRegister(result)
+                } else {
+                    val statement = result.register(this.statement())
+
+                    if (result.error != null) {
+                        return result
+                    }
+
+                    cases.add(Case(condition, statement!!, true))
+                }
+
+                break
+            }
+        }
+
+        return result.success(ConditionNode(cases))
     }
 
     private fun binaryOperation(function: () -> ParseResult, operators: HashMap<TokenType, String?>, functionB: () -> ParseResult = function): ParseResult {
