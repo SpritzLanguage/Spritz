@@ -1,17 +1,16 @@
-package spritz.error
+package spritz.warning
 
 import spritz.lexer.position.Position
 import spritz.util.times
-import java.lang.Integer.max
 
 /**
  * @author surge
- * @since 25/02/2023
+ * @since 10/03/2023
  */
-open class Error(val name: String, val details: String, val start: Position, val end: Position) {
+open class Warning(val details: String, val start: Position, val end: Position) {
 
     override fun toString(): String {
-        var result = "$name, line ${start.line + 1}: $details\n\n"
+        var result = "Warning: line ${start.line + 1}: $details\n\n"
 
         var endIndex = this.start.contents.indexOf('\n', this.start.index - this.start.column)
 

@@ -9,6 +9,7 @@ import spritz.parser.nodes.*
 import spritz.parser.nodes.condition.Case
 import spritz.parser.nodes.condition.ConditionNode
 import spritz.util.*
+import spritz.warning.Warning
 
 /**
  * @author surge
@@ -432,26 +433,6 @@ class Parser(val tokens: List<Token<*>>) {
 
         if (token.type == IDENTIFIER) {
             advanceRegister(result)
-
-            /* if (modifier(this.currentToken.type)) {
-                val modifier = this.currentToken
-
-                advanceRegister(result)
-
-                var expression: Node = NumberNode(Token(INT, 1, modifier.start, modifier.end))
-
-                if (modifier.type != INCREMENT && modifier.type != DEINCREMENT) {
-                    val expr = result.register(this.expression())
-
-                    if (result.error != null) {
-                        return result
-                    }
-
-                    expression = expr!!
-                }
-
-                return result.success(AssignmentNode(token, expression, modifier, immutable = false, declaration = false, token.start, expression.end))
-            } */
 
             fun assignment(forced: Boolean): ParseResult {
                 val modifier = this.currentToken
@@ -1197,6 +1178,14 @@ class Parser(val tokens: List<Token<*>>) {
 
             if (result.error != null) {
                 return result
+            }
+
+            if ((operator.type == DIVIDE || operator.type == DIVIDE_BY) && right is NumberNode && right.token.value == "0") {
+                result.warn(Warning(
+                    "Division by 0",
+                    right.start,
+                    right.end
+                ))
             }
 
             left = BinaryOperationNode(left as Node, operator, right as Node)

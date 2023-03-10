@@ -58,6 +58,10 @@ fun main() {
         return
     }
 
+    interpretingTestParser.warnings.forEach {
+        println(it)
+    }
+
     val interpretingTest = spritz.interpret(interpretingTestParser.node!!)
 
     if (interpretingTest.first.error != null) {

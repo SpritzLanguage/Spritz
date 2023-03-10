@@ -49,6 +49,10 @@ class Spritz {
             return parsingResult.error
         }
 
+        parsingResult.warnings.forEach {
+            println(it)
+        }
+
         val interpretingResult = interpret(parsingResult.node!!)
 
         if (interpretingResult.first.error != null) {

@@ -1,6 +1,8 @@
 task main {
     // this is the main entrypoint of the program
     forced_assignations()
+
+    warning()
 }
 
 task conditions {
@@ -17,4 +19,8 @@ task forced_assignations {
     const d = true
     d* = false
     std::println(d)
+}
+
+task warning {
+    const a = 2 / 0
 }

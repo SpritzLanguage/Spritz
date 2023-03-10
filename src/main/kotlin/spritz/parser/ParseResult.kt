@@ -2,6 +2,7 @@ package spritz.parser
 
 import spritz.error.Error
 import spritz.parser.node.Node
+import spritz.warning.Warning
 
 /**
  * @author surge
@@ -16,9 +17,12 @@ class ParseResult {
     var reverse = 0
     var lastRegisteredAdvanceCount = 0
 
+    val warnings = mutableListOf<Warning>()
+
     fun register(result: ParseResult): Node? {
         this.lastRegisteredAdvanceCount = result.advancement
         this.advancement += result.advancement
+        this.warnings.addAll(result.warnings)
 
         if (result.error != null) {
             this.error = result.error
@@ -43,6 +47,11 @@ class ParseResult {
 
     fun success(node: Node): ParseResult {
         this.node = node
+        return this
+    }
+
+    fun warn(warning: Warning): ParseResult {
+        this.warnings.add(warning)
         return this
     }
 

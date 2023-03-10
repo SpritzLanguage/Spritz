@@ -1,6 +1,7 @@
 package spritz.value.number
 
 import spritz.error.Error
+import spritz.error.interpreting.MathsError
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
 import spritz.lexer.token.Token
@@ -40,6 +41,15 @@ open class NumberValue<T : Number>(val value: T, type: String) : Value(type) {
 
     override fun divide(other: Value, operator: Token<*>): Pair<Value?, Error?> {
         if (other is NumberValue<*>) {
+            if (other.value == 0) {
+                return Pair(null, MathsError(
+                    "Division by 0",
+                    other.start,
+                    other.end,
+                    this.context
+                ))
+            }
+
             return Pair(convert(if (shouldConvert(other)) this.value.toFloat() / other.value.toFloat() else this.value.toInt() / other.value.toInt()), null)
         }
 
