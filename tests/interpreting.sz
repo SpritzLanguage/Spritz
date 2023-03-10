@@ -1,75 +1,20 @@
-container Holder(a)
-
-task callable {
-    std::println("from callable")
-}
-
-/**
- * Obviously doesn't actually do anything, just an example
- */
-container Window(render) {
-
-    task run {
-        while (true) {
-            render()
-        }
-    }
-
-}
-
-task render {
-    std::println("rendering")
-}
-
 task main {
-    // this is the main entrypoint for the program
-    // this is called when the program is started
+    // this is the main entrypoint of the program
+    forced_assignations()
+}
 
-    mut a = "test"
-    std::println("hello, world!" + a)
+task conditions {
+    const a = true
 
-    const b = Holder(callable)
-    b::a()
-
-    std::println("test"::substring(1, 2))
-
-    const window = Window(render)
-
-    // window::run()
-
-    std::println("tEsT" ~= "test")
-
-    if (false) {
-        std::println("test")
-    } else if (false) {
-        std::println("test2")
+    if (a) {
+        std::println("TRUE")
     } else {
-        std::println("woah")
+        std::println("FALSE")
     }
+}
 
-    const c = true
-
-    if (false) std::println("test") else if (c) std::println("test2") else std::println("wowza")
-
-    if (false) std::println("test")
-
-    const d = "test"::replace("e", "f")
+task forced_assignations {
+    const d = true
+    d* = false
     std::println(d)
-
-    std::println(render::name)
-
-    const e = [1, 2, 3]
-    std::println(e::is_empty())
-
-    for (element : e) {
-        std::println(e::index_of(element))
-    }
-
-    e::clear()
-
-    std::println(e::is_empty())
-
-    e::add(5)
-
-    std::println(e::is_not_empty())
 }

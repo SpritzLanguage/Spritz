@@ -100,7 +100,7 @@ class Interpreter {
 
             PLUS -> left.plus(right, node.operator)
             MINUS -> left.minus(right, node.operator)
-            MULTIPLY -> left.multiply(right, node.operator)
+            ASTERISK -> left.multiply(right, node.operator)
             DIVIDE -> left.divide(right, node.operator)
             MODULO -> left.modulo(right, node.operator)
 
@@ -379,7 +379,7 @@ class Interpreter {
             },
 
             SymbolData(node.immutable, node.name.start, value.end)
-        ), context, node.declaration)
+        ), context, node.declaration, forced = node.forced)
 
         if (set.error != null) {
             return result.failure(set.error)

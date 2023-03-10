@@ -134,7 +134,7 @@ class Lexer(val name: String, val contents: String) {
                 }
 
                 '*' -> {
-                    var type = MULTIPLY
+                    var type = ASTERISK
                     val start = this.position.clone()
 
                     this.advance()

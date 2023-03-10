@@ -2,6 +2,7 @@ package spritz.value.symbols
 
 import spritz.error.interpreting.DualDeclarationError
 import spritz.error.interpreting.MemberNotFoundError
+import spritz.error.interpreting.MutabilityAssignationError
 import spritz.error.interpreting.UndefinedReferenceError
 import spritz.interpreter.context.Context
 import spritz.lexer.position.LinkPosition
@@ -52,7 +53,18 @@ class Table(val parent: Table? = null) {
                     )
                 )
             } else {
-                this.symbols.first { it.identifier == symbol.identifier }.value = symbol.value
+                val existing = this.symbols.first { it.identifier == symbol.identifier }
+
+                if (existing.data.immutable && !forced) {
+                    return SetResult(null, MutabilityAssignationError(
+                        "'${symbol.identifier}' is immutable!",
+                        symbol.data.start,
+                        symbol.data.end,
+                        context
+                    ))
+                }
+
+                existing.value = symbol.value
                 SetResult(symbol.value)
             }
         }

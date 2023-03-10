@@ -8,7 +8,7 @@ enum class TokenType {
     // operators
     PLUS,
     MINUS,
-    MULTIPLY,
+    ASTERISK,
     DIVIDE,
     MODULO,
 

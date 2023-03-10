@@ -161,7 +161,7 @@ class Parser(val tokens: List<Token<*>>) {
                 return result
             }
 
-            return result.success(AssignmentNode(name, expression!!, modifier, immutable, true, start, this.currentToken.end))
+            return result.success(AssignmentNode(name, expression!!, modifier, immutable, declaration = true, forced = false, start, this.currentToken.end))
         }
 
         val node = result.register(this.binaryOperation({ this.comparisonExpression() }, hashMapOf(
@@ -236,7 +236,7 @@ class Parser(val tokens: List<Token<*>>) {
 
     private fun term(): ParseResult {
         return this.binaryOperation({ factor() }, hashMapOf(
-            MULTIPLY to null,
+            ASTERISK to null,
             DIVIDE to null
         ))
     }
@@ -433,7 +433,7 @@ class Parser(val tokens: List<Token<*>>) {
         if (token.type == IDENTIFIER) {
             advanceRegister(result)
 
-            if (modifier(this.currentToken.type)) {
+            /* if (modifier(this.currentToken.type)) {
                 val modifier = this.currentToken
 
                 advanceRegister(result)
@@ -451,6 +451,42 @@ class Parser(val tokens: List<Token<*>>) {
                 }
 
                 return result.success(AssignmentNode(token, expression, modifier, immutable = false, declaration = false, token.start, expression.end))
+            } */
+
+            fun assignment(forced: Boolean): ParseResult {
+                val modifier = this.currentToken
+
+                advanceRegister(result)
+
+                var expression: Node = NumberNode(Token(INT, 1, modifier.start, modifier.end))
+
+                if (modifier.type != INCREMENT && modifier.type != DEINCREMENT) {
+                    val expr = result.register(this.expression())
+
+                    if (result.error != null) {
+                        return result
+                    }
+
+                    expression = expr!!
+                }
+
+                return result.success(AssignmentNode(token, expression, modifier, immutable = false, declaration = false, forced = forced, token.start, expression.end))
+            }
+
+            if (modifier(this.currentToken.type)) {
+                return assignment(false)
+            } else if (this.currentToken.type == ASTERISK) {
+                advanceRegister(result)
+
+                if (!modifier(this.currentToken.type)) {
+                    return result.failure(ParsingError(
+                        "Expected modifier",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                return assignment(true)
             }
 
             return result.success(AccessNode(token))
