@@ -1,5 +1,6 @@
 package spritz.parser
 
+import spritz.api.Config
 import spritz.error.parsing.ParsingError
 import spritz.lexer.token.Token
 import spritz.lexer.token.TokenType
@@ -15,7 +16,7 @@ import spritz.warning.Warning
  * @author surge
  * @since 26/02/2023
  */
-class Parser(val tokens: List<Token<*>>) {
+class Parser(val config: Config, val tokens: List<Token<*>>) {
 
     private var index = -1
     private lateinit var currentToken: Token<*>
@@ -29,7 +30,7 @@ class Parser(val tokens: List<Token<*>>) {
 
         if (result.error != null && this.currentToken.type != END_OF_FILE) {
             return result.failure(ParsingError(
-                "Expected an operator!",
+                "Token '$currentToken' cannot appear here!",
                 this.currentToken.start,
                 this.currentToken.end
             ))
@@ -457,6 +458,14 @@ class Parser(val tokens: List<Token<*>>) {
             if (modifier(this.currentToken.type)) {
                 return assignment(false)
             } else if (this.currentToken.type == ASTERISK) {
+                if (!this.config.forcedAssignations) {
+                    return result.failure(ParsingError(
+                        "Forced assignations are disabled!",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
                 advanceRegister(result)
 
                 if (!modifier(this.currentToken.type)) {

@@ -19,7 +19,8 @@ open class Error(val name: String, val details: String, val start: Position, val
             endIndex = this.start.contents.length
         }
 
-        val line = "> " + this.start.contents.substring(this.start.index - this.start.column until endIndex).trim()
+        val raw = this.start.contents.substring(this.start.index - this.start.column until endIndex)
+        val line = raw.trim()
 
         result += line.replace("\r", "")
 
@@ -27,7 +28,24 @@ open class Error(val name: String, val details: String, val start: Position, val
             result += System.lineSeparator()
         }
 
+        result += " ".repeat(start.column - countLeadingWhitespace(raw))
+        result += "^".repeat(end.column - start.column)
+
         return result
+    }
+
+    private fun countLeadingWhitespace(str: String): Int {
+        var count = 0
+
+        for (i in str.indices) {
+            if (!str[i].isWhitespace()) {
+                break
+            }
+
+            count++
+        }
+
+        return count
     }
 
 }

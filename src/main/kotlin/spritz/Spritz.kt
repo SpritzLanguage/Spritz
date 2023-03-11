@@ -1,6 +1,7 @@
 package spritz
 
 import spritz.api.Coercion
+import spritz.api.Config
 import spritz.api.annotations.Excluded
 import spritz.api.annotations.Identifier
 import spritz.builtin.Global
@@ -27,7 +28,7 @@ import java.lang.reflect.Modifier
  * @author surge
  * @since 25/02/2023
  */
-class Spritz {
+class Spritz(val config: Config = Config()) {
 
     var context = Context("<program>")
     var globalTable = Table()
@@ -63,7 +64,7 @@ class Spritz {
     }
 
     fun lex(name: String, contents: String): Pair<List<Token<*>>, Error?> = Lexer(name, contents).lex()
-    fun parse(tokens: List<Token<*>>): ParseResult = Parser(tokens).parse()
+    fun parse(tokens: List<Token<*>>): ParseResult = Parser(config, tokens).parse()
 
     fun interpret(node: Node): Pair<RuntimeResult, Table> {
         val interpreter = Interpreter()

@@ -75,13 +75,13 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
 
                         if (dots > 0) {
-                            return Pair(mutableListOf(), LexingError("The floating point literal does not conform to type 'byte'", start, this.position))
+                            return Pair(mutableListOf(), LexingError("The floating point literal does not conform to type 'byte'", start, this.position.clone()))
                         }
 
                         type = BYTE
                     }
 
-                    tokens.add(Token(type, result, start, this.position))
+                    tokens.add(Token(type, result, start, this.position.clone()))
                 }
 
                 in identifierLetters -> {
@@ -93,7 +93,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(if (keyword(identifier)) KEYWORD else IDENTIFIER, identifier, start, this.position))
+                    tokens.add(Token(if (keyword(identifier)) KEYWORD else IDENTIFIER, identifier, start, this.position.clone()))
                 }
 
                 '+' -> {
@@ -110,7 +110,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 '-' -> {
@@ -130,7 +130,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 '*' -> {
@@ -144,7 +144,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 '/' -> {
@@ -179,7 +179,7 @@ class Lexer(val name: String, val contents: String) {
                             this.advance()
                         }
 
-                        tokens.add(Token(type, null, start, this.position))
+                        tokens.add(Token(type, null, start, this.position.clone()))
                     }
                 }
 
@@ -194,37 +194,37 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                     this.advance()
                 }
 
                 '{' -> {
-                    tokens.add(Token(OPEN_BRACE, null, this.position))
+                    tokens.add(Token(OPEN_BRACE, null, this.position.clone()))
                     this.advance()
                 }
 
                 '}' -> {
-                    tokens.add(Token(CLOSE_BRACE, null, this.position))
+                    tokens.add(Token(CLOSE_BRACE, null, this.position.clone()))
                     this.advance()
                 }
 
                 '(' -> {
-                    tokens.add(Token(OPEN_PARENTHESES, null, this.position))
+                    tokens.add(Token(OPEN_PARENTHESES, null, this.position.clone()))
                     this.advance()
                 }
 
                 ')' -> {
-                    tokens.add(Token(CLOSE_PARENTHESES, null, this.position))
+                    tokens.add(Token(CLOSE_PARENTHESES, null, this.position.clone()))
                     this.advance()
                 }
 
                 '[' -> {
-                    tokens.add(Token(OPEN_SQUARE, null, this.position))
+                    tokens.add(Token(OPEN_SQUARE, null, this.position.clone()))
                     this.advance()
                 }
 
                 ']' -> {
-                    tokens.add(Token(CLOSE_SQUARE, null, this.position))
+                    tokens.add(Token(CLOSE_SQUARE, null, this.position.clone()))
                     this.advance()
                 }
 
@@ -239,11 +239,11 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 ',' -> {
-                    tokens.add(Token(COMMA, null, this.position))
+                    tokens.add(Token(COMMA, null, this.position.clone()))
                     this.advance()
                 }
 
@@ -274,7 +274,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(STRING, result, start, this.position))
+                    tokens.add(Token(STRING, result, start, this.position.clone()))
                     this.advance()
                 }
 
@@ -292,7 +292,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 '>' -> {
@@ -314,7 +314,7 @@ class Lexer(val name: String, val contents: String) {
                         }
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 '=' -> {
@@ -328,7 +328,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 '!' -> {
@@ -342,7 +342,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 '&' -> {
@@ -356,7 +356,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 '|' -> {
@@ -370,11 +370,11 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 '^' -> {
-                    tokens.add(Token(BIN_XOR, null, this.position))
+                    tokens.add(Token(BIN_XOR, null, this.position.clone()))
                     this.advance()
                 }
 
@@ -396,7 +396,7 @@ class Lexer(val name: String, val contents: String) {
                         this.advance()
                     }
 
-                    tokens.add(Token(type, null, start, this.position))
+                    tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
                 else -> {
@@ -405,12 +405,12 @@ class Lexer(val name: String, val contents: String) {
 
                     this.advance()
 
-                    return Pair(mutableListOf(), LexingError("Illegal Character: '$char'", start, this.position))
+                    return Pair(mutableListOf(), LexingError("Illegal Character: '$char'", start, this.position.clone()))
                 }
             }
         }
 
-        tokens.add(Token(END_OF_FILE, null, start = this.position))
+        tokens.add(Token(END_OF_FILE, null, start = this.position.clone()))
         return Pair(tokens, null)
     }
 
