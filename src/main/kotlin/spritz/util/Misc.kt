@@ -23,6 +23,8 @@ val KEYWORDS = hashMapOf(
     "container" to "container",
     "mutable" to "mut",
     "constant" to "const",
+    "external" to "external",
+    "as" to "as",
 
     // loops
     "for" to "for",

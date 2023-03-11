@@ -119,15 +119,21 @@ class Lexer(val name: String, val contents: String) {
 
                     this.advance()
 
-                    if (this.currentChar == '-') {
-                        type = DEINCREMENT
-                        this.advance()
-                    } else if (this.currentChar == '=') {
-                        type = DECREASE_BY
-                        this.advance()
-                    } else if (this.currentChar == '>') {
-                        type = ARROW
-                        this.advance()
+                    when (this.currentChar) {
+                        '-' -> {
+                            type = DEINCREMENT
+                            this.advance()
+                        }
+
+                        '=' -> {
+                            type = DECREASE_BY
+                            this.advance()
+                        }
+
+                        '>' -> {
+                            type = ARROW
+                            this.advance()
+                        }
                     }
 
                     tokens.add(Token(type, null, start, this.position.clone()))

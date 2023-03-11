@@ -537,6 +537,16 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             return result.success(`while` as Node)
         }
 
+        if (token.matches("external")) {
+            val external = result.register(this.external())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(external as Node)
+        }
+
         return result.failure(ParsingError(
             "Expected int, float, '+', '-' or '('",
             token.start,
@@ -981,6 +991,51 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             start,
             this.currentToken.end
         ))
+    }
+
+    private fun external(): ParseResult {
+        val result = ParseResult()
+        val start = this.currentToken.start
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != STRING) {
+            return result.failure(ParsingError(
+                "Expected string",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        val path = this.currentToken
+
+        val end = this.currentToken.end.clone()
+
+        advanceRegister(result)
+
+        if (!this.currentToken.matches("as")) {
+            return result.failure(ParsingError(
+                "Expected 'as'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != IDENTIFIER) {
+            return result.failure(ParsingError(
+                "Expected identifier",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        val identifier = this.currentToken
+
+        advanceRegister(result)
+
+        return result.success(ExternalNode(path, identifier, this.config, start, end))
     }
 
     private fun conditional(): ParseResult {

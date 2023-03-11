@@ -1,0 +1,8 @@
+external "individual_tests/importing/secondary" as secondary
+
+task main {
+    secondary::external_task()
+
+    const a = secondary::TestHolder(2)
+    std::println(a::a)
+}

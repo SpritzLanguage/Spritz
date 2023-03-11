@@ -1,0 +1,5 @@
+task external_task {
+    std::println("Called from secondary.sz")
+}
+
+container TestHolder(a)

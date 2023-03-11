@@ -1,6 +1,8 @@
 package spritz.interpreter
 
+import spritz.Spritz
 import spritz.error.Error
+import spritz.error.interpreting.ExternalNotFoundError
 import spritz.error.interpreting.IllegalOperationError
 import spritz.error.interpreting.NodeIntepreterNotFoundError
 import spritz.error.interpreting.TypeMismatchError
@@ -16,6 +18,7 @@ import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
 import spritz.value.bool.BoolValue
 import spritz.value.container.DefinedContainerValue
+import spritz.value.container.InstanceValue
 import spritz.value.list.ListValue
 import spritz.value.number.ByteValue
 import spritz.value.number.FloatValue
@@ -25,6 +28,8 @@ import spritz.value.symbols.Symbol
 import spritz.value.symbols.SymbolData
 import spritz.value.symbols.Table
 import spritz.value.task.DefinedTaskValue
+import java.io.File
+import java.nio.charset.Charset
 
 /**
  * @author surge
@@ -53,7 +58,10 @@ class Interpreter {
         ConditionNode::class.java to { node: Node, parentContext: Context, childContext: Context -> condition(node as ConditionNode, parentContext, childContext) },
         ForNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `for`(node as ForNode, parentContext, childContext) },
         WhileNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `while`(node as WhileNode, parentContext, childContext) },
-        ReturnNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callReturn(node as ReturnNode, parentContext, childContext) }
+        ReturnNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callReturn(node as ReturnNode, parentContext, childContext) },
+
+        // other
+        ExternalNode::class.java to { node: Node, parentContext: Context, childContext: Context -> external(node as ExternalNode, parentContext, childContext) }
     )
 
     /**
@@ -696,6 +704,54 @@ class Interpreter {
         }
 
         return result.success(NullValue())
+    }
+
+    private fun external(node: ExternalNode, context: Context, childContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val file = File("${node.path.value}.sz")
+
+        if (file.exists()) {
+            val spritz = Spritz(node.config)
+
+            val lex = spritz.lex(file.nameWithoutExtension, file.readText(Charset.defaultCharset()))
+
+            if (lex.second != null) {
+                return result.failure(lex.second!!)
+            }
+
+            val parse = spritz.parse(lex.first)
+
+            if (parse.error != null) {
+                return result.failure(parse.error!!)
+            }
+
+            val instance = DefinedContainerValue(node.identifier.value.toString(), arrayListOf(), parse.node)
+                .positioned(node.start, node.end)
+                .givenContext(context)
+                .execute(arrayListOf())
+
+            if (instance.error != null) {
+                return result.failure(instance.error!!)
+            }
+
+            instance.value!!.positioned(node.start, node.end).givenContext(context)
+
+            val set = context.table.set(Symbol(node.identifier.value.toString(), instance.value!!, SymbolData(immutable = true, node.start, node.end)), context, declaration = true)
+
+            if (set.error != null) {
+                return result.failure(set.error)
+            }
+
+            return result.success(instance.value)
+        } else {
+            return result.failure(ExternalNotFoundError(
+                "'${node.path}' was not found!",
+                node.path.start,
+                node.path.end,
+                context
+            ))
+        }
     }
 
     private fun child(node: Node, reference: Value, context: Context): RuntimeResult {
