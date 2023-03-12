@@ -1,5 +1,6 @@
 package spritz.error
 
+import spritz.lexer.position.LinkPosition
 import spritz.lexer.position.Position
 import spritz.util.times
 import java.lang.Integer.max
@@ -28,8 +29,10 @@ open class Error(val name: String, val details: String, val start: Position, val
             result += System.lineSeparator()
         }
 
-        result += " ".repeat(start.column - countLeadingWhitespace(raw))
-        result += "^".repeat(end.column - start.column)
+        if (start !is LinkPosition && end !is LinkPosition && end.column - start.column >= 0) {
+            result += " ".repeat(start.column - countLeadingWhitespace(raw))
+            result += "^".repeat(end.column - start.column)
+        }
 
         return result
     }

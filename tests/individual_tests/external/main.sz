@@ -1,0 +1,10 @@
+task render {
+    std::println("test")
+}
+
+task main {
+    const window = gui::Window(render, 1280, 720)
+    std::println(window)
+
+    window::render()
+}

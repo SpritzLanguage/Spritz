@@ -1,6 +1,6 @@
 import spritz.Spritz
-import spritz.value.bool.BoolValue
-import spritz.value.list.ListValue
+import spritz.api.LoadType
+import spritz.builtin.gui.Window
 import spritz.value.task.DefinedTaskValue
 import java.io.File
 import java.nio.charset.Charset
@@ -12,10 +12,13 @@ import java.nio.charset.Charset
 fun main() {
     val spritz = Spritz()
         .loadStandard()
+        .loadAsLibrary("gui", hashMapOf(
+            "Window" to (Window(null, 0, 0) to LoadType.CLASS)
+        ))
 
     // individual_tests/importing/main.sz
 
-    val test = File("individual_tests/importing/main.sz")
+    val test = File("individual_tests/external/main.sz")
 
     if (!test.exists()) {
         println("Test not found")

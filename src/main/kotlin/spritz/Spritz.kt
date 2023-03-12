@@ -2,6 +2,7 @@ package spritz
 
 import spritz.api.Coercion
 import spritz.api.Config
+import spritz.api.LoadType
 import spritz.api.annotations.Excluded
 import spritz.api.annotations.Identifier
 import spritz.builtin.Global
@@ -13,15 +14,18 @@ import spritz.interpreter.context.Context
 import spritz.lexer.Lexer
 import spritz.lexer.position.LinkPosition
 import spritz.lexer.token.Token
+import spritz.lexer.token.TokenType
 import spritz.parser.ParseResult
 import spritz.parser.Parser
 import spritz.parser.node.Node
-import spritz.value.bool.BoolValue
+import spritz.util.RequiredArgument
+import spritz.value.PrimitiveReferenceValue
+import spritz.value.container.DefinedContainerValue
+import spritz.value.container.JvmContainerValue
 import spritz.value.container.JvmInstanceValue
 import spritz.value.symbols.Symbol
 import spritz.value.symbols.SymbolData
 import spritz.value.symbols.Table
-import java.awt.Color
 import java.lang.reflect.Modifier
 
 /**
@@ -87,10 +91,29 @@ class Spritz(val config: Config = Config()) {
         context.givenTable(globalTable)
     }
 
-    fun load(instance: Any, identifier: String): Spritz {
-        val jvmInstance = JvmInstanceValue(instance)
+    fun load(instance: Any, identifier: String, table: Table = globalTable, type: LoadType = LoadType.INSTANCE): Spritz {
+        val value = if (type == LoadType.INSTANCE) {
+            JvmInstanceValue(instance)
+        } else {
+            JvmContainerValue(identifier, instance::class.java, instance)
+        }
 
-        globalTable.set(Symbol(identifier, jvmInstance, SymbolData(immutable = true, LinkPosition(), LinkPosition())), context, true)
+        table.set(Symbol(identifier, value, SymbolData(immutable = true, LinkPosition(), LinkPosition())), context, true)
+
+        return this
+    }
+
+    fun loadAsLibrary(identifier: String, modules: HashMap<String, Pair<Any, LoadType>>): Spritz {
+        val container = DefinedContainerValue(identifier, listOf(), null).positioned(LinkPosition(), LinkPosition()).givenContext(this.context)
+
+        modules.forEach { (identifier, data) ->
+            val instance = data.first
+            val type = data.second
+
+            load(instance, identifier, container.table, type)
+        }
+
+        globalTable.set(Symbol(identifier, container, SymbolData(immutable = true, LinkPosition(), LinkPosition())), context, true)
 
         return this
     }
