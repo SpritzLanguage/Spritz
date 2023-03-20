@@ -11,7 +11,7 @@ import spritz.value.task.TaskValue
  * @author surge
  * @since 04/03/2023
  */
-class JvmContainerValue(identifier: String, val clazz: Class<*>) : TaskValue(identifier = identifier, "container") {
+class JvmContainerValue(identifier: String, val clazz: Class<*>) : TaskValue(identifier = identifier, identifier) {
 
     override fun asJvmValue() = clazz
 

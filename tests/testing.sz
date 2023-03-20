@@ -1,15 +1,21 @@
 container TestContainer(a)
 
 task camelCaseFunction {
-
+    return 5
 }
 
 task<TestContainer> tester {
     return TestContainer(3)
 }
 
+task<int> type_testing(a: TestContainer, b: int) {
+    return a::a + b
+}
+
 task<int> main {
+    camelCaseFunction()
     std::println(tester()::a)
+    std::println(type_testing(tester(), 5))
 
     return 0
 }

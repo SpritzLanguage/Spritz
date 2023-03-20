@@ -15,7 +15,7 @@ import spritz.value.task.TaskValue
  * @author surge
  * @since 04/03/2023
  */
-class DefinedContainerValue(identifier: String, val constructor: List<RequiredArgument>, val body: Node?) : TaskValue(identifier = identifier, "container") {
+class DefinedContainerValue(identifier: String, val constructor: List<RequiredArgument>, val body: Node?) : TaskValue(identifier = identifier, identifier) {
 
     override fun asJvmValue() = this
 

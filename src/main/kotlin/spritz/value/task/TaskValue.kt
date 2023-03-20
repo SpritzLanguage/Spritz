@@ -2,10 +2,13 @@ package spritz.value.task
 
 import spritz.error.Error
 import spritz.error.interpreting.CallArgumentMismatchError
+import spritz.error.interpreting.TypeMismatchError
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
 import spritz.util.RequiredArgument
+import spritz.value.NullValue
+import spritz.value.PrimitiveValue
 import spritz.value.Value
 import spritz.value.table.Symbol
 import spritz.value.table.Table
@@ -17,13 +20,6 @@ import spritz.value.table.Table
 abstract class TaskValue(identifier: String, type: String = "task") : Value(type, identifier) {
 
     abstract override fun asJvmValue(): Any
-
-    protected fun generateContext(): Context {
-        val new = Context(this.identifier, this.context, this.start)
-        new.givenTable(Table(parent = new.parent?.table))
-
-        return new
-    }
 
     protected fun check(required: List<RequiredArgument>, given: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
@@ -46,7 +42,23 @@ abstract class TaskValue(identifier: String, type: String = "task") : Value(type
             ))
         }
 
-        // TODO: Fix types
+        given.forEachIndexed { index, givenValue ->
+            val matched = required[index]
+
+            // any type
+            if (matched.type == null || matched.type.type == "any") {
+                return@forEachIndexed
+            }
+
+            if (givenValue !is NullValue && (!PrimitiveValue.check(givenValue, matched.type) || givenValue.type != matched.type.type)) {
+                return result.failure(TypeMismatchError(
+                    "Given value did not conform to type '${matched.type.type}' (got '${givenValue.type}')",
+                    givenValue.start,
+                    givenValue.end,
+                    context
+                ))
+            }
+        }
 
         return result.success(null)
     }

@@ -22,7 +22,15 @@ class PrimitiveValue(identifier: String, val test: (Value) -> Boolean) : Value(i
         }
 
         @JvmStatic
-        fun check(value: Value): Boolean {
+        fun check(value: Value, required: Value): Boolean {
+            if (required.type == "any") {
+                return true
+            }
+
+            if (value.type != required.type) {
+                return false
+            }
+
             return primitives.any { it.test(value) }
         }
 

@@ -268,7 +268,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         ), { this.factor() })
     }
 
-    private fun call(child: Boolean = false): ParseResult {
+    private fun call(child: Boolean = false, type: Boolean = false): ParseResult {
         val result = ParseResult()
 
         val atom = result.register(this.atom(child))
@@ -279,6 +279,14 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         }
 
         if (this.currentToken.type == OPEN_PARENTHESES) {
+            if (type) {
+                return result.failure(ParsingError(
+                    "Unexpected call",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
+            }
+
             advanceRegister(result)
 
             val argumentNodes = arrayListOf<Node>()
@@ -553,12 +561,11 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         advanceRegister(result)
 
         var returnType: Node? = null
-        val typeStart = this.currentToken.start.clone()
 
         if (this.currentToken.type == ARROW_LEFT) {
             advanceRegister(result)
 
-            returnType = result.register(this.call(true))
+            returnType = result.register(this.call(child = true, type = true))
 
             if (result.error != null) {
                 return result
@@ -605,15 +612,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
                 if (this.currentToken.type == COLON) {
                     advanceRegister(result)
 
-                    if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
-                        return result.failure(ParsingError(
-                            "Expected identifier",
-                            this.currentToken.start,
-                            this.currentToken.end
-                        ))
-                    }
-
-                    argumentType = result.register(this.atom())
+                    argumentType = result.register(this.call(child = true, type = true))
 
                     if (result.error != null) {
                         return result

@@ -35,13 +35,13 @@ class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>
             return result
         }
 
-        val returnValue = (if (expression) value else null) ?: (result.returnValue ?: NullValue()).positioned(start, end).givenContext(context)
+        val returnValue = (if (expression) value else null) ?: (result.returnValue ?: NullValue().positioned(start, end)).givenContext(context)
 
-        if (returnValue !is NullValue && !PrimitiveValue.check(returnValue)) {
+        if (returnValue !is NullValue && returnType != null && (!PrimitiveValue.check(returnValue, returnType) || returnValue.type != returnType.type)) {
             return result.failure(TypeMismatchError(
-                "Returned value did not conform to type '${returnValue.type}'",
-                start,
-                end,
+                "Returned value did not conform to type '${returnType.type}' (got '${returnValue.type}')",
+                returnValue.start,
+                returnValue.end,
                 context
             ))
         }
