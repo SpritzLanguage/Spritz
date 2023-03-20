@@ -7,9 +7,8 @@ import spritz.lexer.position.Position
 import spritz.parser.node.Node
 import spritz.util.RequiredArgument
 import spritz.value.Value
-import spritz.value.symbols.Symbol
-import spritz.value.symbols.SymbolData
-import spritz.value.symbols.Table
+import spritz.value.table.Symbol
+import spritz.value.table.Table
 import spritz.value.task.TaskValue
 
 /**
@@ -17,6 +16,8 @@ import spritz.value.task.TaskValue
  * @since 04/03/2023
  */
 class DefinedContainerValue(identifier: String, val constructor: List<RequiredArgument>, val body: Node?) : TaskValue(identifier = identifier, "container") {
+
+    override fun asJvmValue() = this
 
     override fun execute(passed: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
@@ -45,7 +46,7 @@ class DefinedContainerValue(identifier: String, val constructor: List<RequiredAr
         table.symbols.addAll(instanceContext.table.symbols)
         val instance = InstanceValue(this, table)
 
-        instance.table.set(Symbol("this", instance, SymbolData(immutable = true, this.start, this.end)), context, true)
+        instance.table.set(Symbol("this", instance, this.start, this.end).setImmutability(true), context, true)
 
         return result.success(instance.positioned(start, end).givenContext(instanceContext))
     }

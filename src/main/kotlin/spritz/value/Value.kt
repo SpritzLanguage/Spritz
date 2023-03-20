@@ -1,8 +1,5 @@
 package spritz.value
 
-import spritz.api.Coercion
-import spritz.api.annotations.Excluded
-import spritz.builtin.Standard
 import spritz.error.Error
 import spritz.error.interpreting.IllegalOperationError
 import spritz.interfaces.Cloneable
@@ -11,9 +8,8 @@ import spritz.interpreter.context.Context
 import spritz.lexer.position.LinkPosition
 import spritz.lexer.position.Position
 import spritz.lexer.token.Token
-import spritz.value.bool.BoolValue
-import spritz.value.symbols.Symbol
-import spritz.value.symbols.Table
+import spritz.value.bool.BooleanValue
+import spritz.value.table.Table
 
 /**
  * @author surge
@@ -26,6 +22,8 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
     lateinit var context: Context
 
     var table = Table()
+
+    abstract fun asJvmValue(): Any?
 
     open fun and(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun or(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
@@ -45,8 +43,8 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
     open fun binXor(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun binComplement(operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, this, operator)
 
-    open fun equality(other: Value, operator: Token<*>): Pair<BoolValue?, Error?> = Pair(BoolValue(this == other), null)
-    open fun inequality(other: Value, operator: Token<*>): Pair<Value?, Error?> = Pair(BoolValue(this != other), null)
+    open fun equality(other: Value, operator: Token<*>): Pair<BooleanValue?, Error?> = Pair(BooleanValue(this == other), null)
+    open fun inequality(other: Value, operator: Token<*>): Pair<Value?, Error?> = Pair(BooleanValue(this != other), null)
     open fun roughEquality(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun roughInequality(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
     open fun lessThan(other: Value, operator: Token<*>): Pair<Value?, Error?> = delegateToIllegal(this, other, operator)
@@ -58,8 +56,6 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
 
     fun execute(passed: List<Value>): RuntimeResult = execute(passed, LinkPosition(), LinkPosition(), this.context)
     open fun execute(passed: List<Value>, start: Position, end: Position, context: Context): RuntimeResult = RuntimeResult().failure(IllegalOperationError("Couldn't execute '$this'", start, end, this.context))
-
-    open fun matchesType(type: Value): Boolean = type is PrimitiveReferenceValue && type.type == "any"
 
     override fun clone(): Value {
         return this
@@ -80,7 +76,12 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
         return this
     }
 
+    fun linked(): Value {
+        return positioned(LinkPosition(), LinkPosition()).givenContext(Context(this.identifier))
+    }
+
     companion object {
+
         fun delegateToIllegal(value: Value, other: Value, operator: Token<*>): Pair<Value?, IllegalOperationError> {
             return Pair(
                 null,
@@ -92,6 +93,7 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
                 )
             )
         }
+
     }
 
 }

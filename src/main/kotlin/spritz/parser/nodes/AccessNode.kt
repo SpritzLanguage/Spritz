@@ -9,6 +9,6 @@ import spritz.parser.node.Node
  */
 class AccessNode(val identifier: Token<*>) : Node(identifier.start, identifier.end) {
 
-    override fun toString() = "(Access: $identifier, $child)"
+    override fun toString() = "(Access: $identifier)::($child)"
 
 }

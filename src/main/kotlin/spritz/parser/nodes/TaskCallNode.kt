@@ -10,6 +10,6 @@ import spritz.value.Value
  */
 class TaskCallNode(val target: Node, val arguments: List<Node>, start: Position, end: Position) : Node(start, end) {
 
-    override fun toString() = "(Task Call: $target, $arguments)"
+    override fun toString() = "(Task Call: $target, $arguments)::($child)"
 
 }

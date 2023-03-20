@@ -1,7 +1,7 @@
 package spritz.value.container
 
 import spritz.value.Value
-import spritz.value.symbols.Table
+import spritz.value.table.Table
 
 /**
  * @author surge
@@ -13,7 +13,7 @@ open class InstanceValue(val parent: DefinedContainerValue, table: Table) : Valu
         this.table = table
     }
 
-    override fun matchesType(type: Value) = super.matchesType(type) || type.type == parent.type
+    override fun asJvmValue() = this
     override fun toString() = "(Instance of $type)"
 
 }

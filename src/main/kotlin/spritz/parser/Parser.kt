@@ -263,15 +263,15 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
     }
 
     private fun modulo(): ParseResult {
-        return this.binaryOperation({ this.call() }, hashMapOf(
+        return this.binaryOperation({ call() }, hashMapOf(
             MODULO to null
         ), { this.factor() })
     }
 
-    private fun call(): ParseResult {
+    private fun call(child: Boolean = false): ParseResult {
         val result = ParseResult()
 
-        val atom = result.register(this.atom())
+        val atom = result.register(this.atom(child))
         var node = atom
 
         if (result.error != null) {
@@ -325,30 +325,26 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             node = TaskCallNode(atom as Node, argumentNodes, atom.start, this.currentToken.end)
         }
 
-        var child: Node? = null
+        var child: Node? = node
 
         while (this.currentToken.type == ACCESSOR) {
-            if (child == null) {
-                child = atom as Node
-            }
-
             result.registerAdvancement()
             this.advance()
 
-            val sub = result.register(this.call())
+            val sub = result.register(this.call(true))
 
             if (result.error != null) {
                 return result
             }
 
-            child.child = sub as Node
+            child!!.child = sub as Node
             child = sub
         }
 
         return result.success(node as Node)
     }
 
-    private fun atom(): ParseResult {
+    private fun atom(child: Boolean = false): ParseResult {
         val result = ParseResult()
 
         val token = this.currentToken
@@ -432,7 +428,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             return result.success(StringNode(token, token.start, token.end))
         }
 
-        if (token.type == IDENTIFIER) {
+        if (token.type == IDENTIFIER || token.type == KEYWORD && child) {
             advanceRegister(result)
 
             fun assignment(forced: Boolean): ParseResult {
@@ -479,11 +475,6 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
                 return assignment(true)
             }
 
-            return result.success(AccessNode(token))
-        }
-
-        if (type(token.value.toString())) {
-            advanceRegister(result)
             return result.success(AccessNode(token))
         }
 
@@ -562,19 +553,12 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         advanceRegister(result)
 
         var returnType: Node? = null
+        val typeStart = this.currentToken.start.clone()
 
         if (this.currentToken.type == ARROW_LEFT) {
             advanceRegister(result)
 
-            if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
-                return result.failure(ParsingError(
-                    "Expected identifier",
-                    this.currentToken.start,
-                    this.currentToken.end
-                ))
-            }
-
-            returnType = result.register(this.atom())
+            returnType = result.register(this.call(true))
 
             if (result.error != null) {
                 return result
@@ -600,6 +584,10 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         }
 
         val name = this.currentToken.value as String
+
+        if (name.any { it.isUpperCase() }) {
+            result.warn(Warning("Name should be in snake_case (upper case char detected)", this.currentToken.start.clone()))
+        }
 
         advanceRegister(result)
 
@@ -1247,8 +1235,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             if ((operator.type == DIVIDE || operator.type == DIVIDE_BY) && right is NumberNode && right.token.value == "0") {
                 result.warn(Warning(
                     "Division by 0",
-                    right.start,
-                    right.end
+                    right.start
                 ))
             }
 

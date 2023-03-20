@@ -1,8 +1,6 @@
 package spritz.interpreter
 
-import spritz.Spritz
 import spritz.error.Error
-import spritz.error.interpreting.ExternalNotFoundError
 import spritz.error.interpreting.IllegalOperationError
 import spritz.error.interpreting.NodeIntepreterNotFoundError
 import spritz.error.interpreting.TypeMismatchError
@@ -12,24 +10,17 @@ import spritz.parser.node.Node
 import spritz.parser.nodes.*
 import spritz.parser.nodes.condition.ConditionNode
 import spritz.util.RequiredArgument
-import spritz.util.type
 import spritz.value.NullValue
-import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
-import spritz.value.bool.BoolValue
+import spritz.value.bool.BooleanValue
 import spritz.value.container.DefinedContainerValue
-import spritz.value.container.InstanceValue
 import spritz.value.list.ListValue
-import spritz.value.number.ByteValue
-import spritz.value.number.FloatValue
-import spritz.value.number.IntValue
+import spritz.value.number.*
 import spritz.value.string.StringValue
-import spritz.value.symbols.Symbol
-import spritz.value.symbols.SymbolData
-import spritz.value.symbols.Table
+import spritz.value.table.Symbol
+import spritz.value.table.Table
 import spritz.value.task.DefinedTaskValue
-import java.io.File
-import java.nio.charset.Charset
+import spritz.value.task.TaskValue
 
 /**
  * @author surge
@@ -58,10 +49,7 @@ class Interpreter {
         ConditionNode::class.java to { node: Node, parentContext: Context, childContext: Context -> condition(node as ConditionNode, parentContext, childContext) },
         ForNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `for`(node as ForNode, parentContext, childContext) },
         WhileNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `while`(node as WhileNode, parentContext, childContext) },
-        ReturnNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callReturn(node as ReturnNode, parentContext, childContext) },
-
-        // other
-        ExternalNode::class.java to { node: Node, parentContext: Context, childContext: Context -> external(node as ExternalNode, parentContext, childContext) }
+        ReturnNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callReturn(node as ReturnNode, parentContext, childContext) }
     )
 
     /**
@@ -258,136 +246,143 @@ class Interpreter {
 
         value!!
 
-        val set = context.table.set(Symbol(
-            name,
+        val set = context.table.set(
+            Symbol(
+                name,
 
-            when (node.modifier.type) {
-                ASSIGNMENT -> value
+                when (node.modifier.type) {
+                    ASSIGNMENT -> value
 
-                INCREMENT -> {
-                    val get = context.table.get(name, node.name.start, node.name.end, context)
+                    INCREMENT -> {
+                        val get = context.table.get(name, node.name.start, node.name.end, context)
 
-                    if (get.error != null) {
-                        return result.failure(get.error)
+                        if (get.error != null) {
+                            return result.failure(get.error)
+                        }
+
+                        val modified = get.value!!.plus(IntValue(1), node.modifier)
+
+                        if (modified.second != null) {
+                            return result.failure(modified.second!!)
+                        }
+
+                        modified.first!!
                     }
 
-                    val modified = get.value!!.plus(IntValue(1), node.modifier)
+                    DEINCREMENT -> {
+                        val get = context.table.get(name, node.name.start, node.name.end, context)
 
-                    if (modified.second != null) {
-                        return result.failure(modified.second!!)
+                        if (get.error != null) {
+                            return result.failure(get.error)
+                        }
+
+                        val modified = get.value!!.minus(IntValue(1), node.modifier)
+
+                        if (modified.second != null) {
+                            return result.failure(modified.second!!)
+                        }
+
+                        modified.first!!
                     }
 
-                    modified.first!!
-                }
+                    INCREASE_BY -> {
+                        val get = context.table.get(name, node.name.start, node.name.end, context)
 
-                DEINCREMENT -> {
-                    val get = context.table.get(name, node.name.start, node.name.end, context)
+                        if (get.error != null) {
+                            return result.failure(get.error)
+                        }
 
-                    if (get.error != null) {
-                        return result.failure(get.error)
+                        val modified = get.value!!.plus(value, node.modifier)
+
+                        if (modified.second != null) {
+                            return result.failure(modified.second!!)
+                        }
+
+                        modified.first!!
                     }
 
-                    val modified = get.value!!.minus(IntValue(1), node.modifier)
+                    DECREASE_BY -> {
+                        val get = context.table.get(name, node.name.start, node.name.end, context)
 
-                    if (modified.second != null) {
-                        return result.failure(modified.second!!)
+                        if (get.error != null) {
+                            return result.failure(get.error)
+                        }
+
+                        val modified = get.value!!.minus(value, node.modifier)
+
+                        if (modified.second != null) {
+                            return result.failure(modified.second!!)
+                        }
+
+                        modified.first!!
                     }
 
-                    modified.first!!
-                }
+                    MULTIPLY_BY -> {
+                        val get = context.table.get(name, node.name.start, node.name.end, context)
 
-                INCREASE_BY -> {
-                    val get = context.table.get(name, node.name.start, node.name.end, context)
+                        if (get.error != null) {
+                            return result.failure(get.error)
+                        }
 
-                    if (get.error != null) {
-                        return result.failure(get.error)
+                        val modified = get.value!!.multiply(value, node.modifier)
+
+                        if (modified.second != null) {
+                            return result.failure(modified.second!!)
+                        }
+
+                        modified.first!!
                     }
 
-                    val modified = get.value!!.plus(value, node.modifier)
+                    DIVIDE_BY -> {
+                        val get = context.table.get(name, node.name.start, node.name.end, context)
 
-                    if (modified.second != null) {
-                        return result.failure(modified.second!!)
+                        if (get.error != null) {
+                            return result.failure(get.error)
+                        }
+
+                        val modified = get.value!!.divide(value, node.modifier)
+
+                        if (modified.second != null) {
+                            return result.failure(modified.second!!)
+                        }
+
+                        modified.first!!
                     }
 
-                    modified.first!!
-                }
+                    MODULO_BY -> {
+                        val get = context.table.get(name, node.name.start, node.name.end, context)
 
-                DECREASE_BY -> {
-                    val get = context.table.get(name, node.name.start, node.name.end, context)
+                        if (get.error != null) {
+                            return result.failure(get.error)
+                        }
 
-                    if (get.error != null) {
-                        return result.failure(get.error)
+                        val modified = get.value!!.modulo(value, node.modifier)
+
+                        if (modified.second != null) {
+                            return result.failure(modified.second!!)
+                        }
+
+                        modified.first!!
                     }
 
-                    val modified = get.value!!.minus(value, node.modifier)
-
-                    if (modified.second != null) {
-                        return result.failure(modified.second!!)
+                    else -> {
+                        return result.failure(IllegalOperationError(
+                            "Invalid operation: '${node.modifier}'",
+                            node.modifier.start,
+                            node.modifier.end,
+                            context
+                        ))
                     }
+                },
 
-                    modified.first!!
-                }
+                node.start,
+                node.end,
+            ),
 
-                MULTIPLY_BY -> {
-                    val get = context.table.get(name, node.name.start, node.name.end, context)
-
-                    if (get.error != null) {
-                        return result.failure(get.error)
-                    }
-
-                    val modified = get.value!!.multiply(value, node.modifier)
-
-                    if (modified.second != null) {
-                        return result.failure(modified.second!!)
-                    }
-
-                    modified.first!!
-                }
-
-                DIVIDE_BY -> {
-                    val get = context.table.get(name, node.name.start, node.name.end, context)
-
-                    if (get.error != null) {
-                        return result.failure(get.error)
-                    }
-
-                    val modified = get.value!!.divide(value, node.modifier)
-
-                    if (modified.second != null) {
-                        return result.failure(modified.second!!)
-                    }
-
-                    modified.first!!
-                }
-
-                MODULO_BY -> {
-                    val get = context.table.get(name, node.name.start, node.name.end, context)
-
-                    if (get.error != null) {
-                        return result.failure(get.error)
-                    }
-
-                    val modified = get.value!!.modulo(value, node.modifier)
-
-                    if (modified.second != null) {
-                        return result.failure(modified.second!!)
-                    }
-
-                    modified.first!!
-                }
-
-                else -> {
-                    return result.failure(IllegalOperationError(
-                        "Invalid operation: '${node.modifier}'",
-                        node.modifier.start,
-                        node.modifier.end,
-                        context
-                    ))
-                }
-            },
-
-            SymbolData(node.immutable, node.name.start, value.end)
-        ), context, node.declaration, forced = node.forced)
+            context,
+            declaration = node.declaration,
+            forced = node.forced
+        )
 
         if (set.error != null) {
             return result.failure(set.error)
@@ -399,10 +394,8 @@ class Interpreter {
     private fun access(node: AccessNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
-        var reference: Value = if (type(node.identifier.value as String)) {
-            PrimitiveReferenceValue(node.identifier.value)
-        } else {
-            val get = childContext.table.get(node.identifier.value, node.identifier.start, node.identifier.end, childContext)
+        var reference: Value = run {
+            val get = childContext.table.get(node.identifier.value.toString(), node.identifier.start, node.identifier.end, childContext, context != childContext)
 
             if (get.error != null) {
                 return result.failure(get.error)
@@ -411,6 +404,7 @@ class Interpreter {
             get.value!!
         }
 
+        // although this is still executed when a CallNode is invoked, it will be overridden by the returned value
         val child = result.register(child(node, reference, context))
 
         if (result.shouldReturn()) {
@@ -456,7 +450,7 @@ class Interpreter {
             .positioned(node.start, node.end)
             .givenContext(context) as DefinedTaskValue
 
-        val set = context.table.set(Symbol(name, task, SymbolData(immutable = true, node.start, node.end)), context, declaration = true)
+        val set = context.table.set(Symbol(name, task, node.start, node.end).setImmutability(true), context, declaration = true)
 
         if (set.error != null) {
             return result.failure(set.error)
@@ -488,7 +482,7 @@ class Interpreter {
 
         val container = DefinedContainerValue(name, constructor, node.body).positioned(node.start, node.end).givenContext(context)
 
-        val set = context.table.set(Symbol(name, container, SymbolData(immutable = true, node.start, node.end)), context, declaration = true)
+        val set = context.table.set(Symbol(name, container, node.start, node.end).setImmutability(true), context, declaration = true)
 
         if (set.error != null) {
             return result.failure(set.error)
@@ -520,33 +514,27 @@ class Interpreter {
 
         target!!.clone().positioned(node.start, node.end).givenContext(context)
 
-        var executed = result.register(target.execute(passedArguments, node.start, node.end, context))
+        var returned = result.register(target.execute(passedArguments, node.start, node.end, context))
 
         if (result.shouldReturn()) {
             return result
         }
 
-        if (executed == null) {
-            executed = NullValue()
+        if (returned == null) {
+            returned = NullValue()
         }
 
-        node.child?.let {
-            val childContext = Context(executed!!.type)
+        val child = result.register(child(node, returned, context))
 
-            childContext.table = executed!!.table
-
-            val child = result.register(this.visit(it, childContext))
-
-            if (result.shouldReturn()) {
-                return result
-            }
-
-            executed = child!!
+        if (result.shouldReturn()) {
+            return result
         }
 
-        executed = executed!!.clone().positioned(node.start, node.end).givenContext(context)
+        returned = child!!
 
-        return result.success(executed)
+        returned = returned.clone().positioned(node.start, node.end).givenContext(context)
+
+        return result.success(returned)
     }
 
     private fun callReturn(node: ReturnNode, context: Context, childContext: Context): RuntimeResult {
@@ -591,7 +579,7 @@ class Interpreter {
         val elements = mutableListOf<Value>()
 
         for (i in list.elements) {
-            scope.table.set(Symbol(node.identifier.value.toString(), i, SymbolData(immutable = true, node.identifier.start, node.identifier.end)), context, declaration = true, forced = true)
+            scope.table.set(Symbol(node.identifier.value.toString(), i, node.identifier.start, node.identifier.end).setImmutability(true), context, declaration = true, forced = true)
 
             val body = result.register(this.visit(node.body, scope))
 
@@ -631,7 +619,7 @@ class Interpreter {
                 return result
             }
 
-            if (condition !is BoolValue) {
+            if (condition !is BooleanValue) {
                 return result.failure(TypeMismatchError(
                     "Expected 'bool' not ${condition?.type ?: "<JVM NULL>"}",
                     node.expression.start,
@@ -675,7 +663,7 @@ class Interpreter {
                     return result
                 }
 
-                if (condition !is BoolValue) {
+                if (condition !is BooleanValue) {
                     return result.failure(
                         TypeMismatchError(
                             "Expected 'bool' not ${condition?.type ?: "<JVM NULL>"}",
@@ -704,54 +692,6 @@ class Interpreter {
         }
 
         return result.success(NullValue())
-    }
-
-    private fun external(node: ExternalNode, context: Context, childContext: Context): RuntimeResult {
-        val result = RuntimeResult()
-
-        val file = File("${node.path.value}.sz")
-
-        if (file.exists()) {
-            val spritz = Spritz(node.config)
-
-            val lex = spritz.lex(file.nameWithoutExtension, file.readText(Charset.defaultCharset()))
-
-            if (lex.second != null) {
-                return result.failure(lex.second!!)
-            }
-
-            val parse = spritz.parse(lex.first)
-
-            if (parse.error != null) {
-                return result.failure(parse.error!!)
-            }
-
-            val instance = DefinedContainerValue(node.identifier.value.toString(), arrayListOf(), parse.node)
-                .positioned(node.start, node.end)
-                .givenContext(context)
-                .execute(arrayListOf())
-
-            if (instance.error != null) {
-                return result.failure(instance.error!!)
-            }
-
-            instance.value!!.positioned(node.start, node.end).givenContext(context)
-
-            val set = context.table.set(Symbol(node.identifier.value.toString(), instance.value!!, SymbolData(immutable = true, node.start, node.end)), context, declaration = true)
-
-            if (set.error != null) {
-                return result.failure(set.error)
-            }
-
-            return result.success(instance.value)
-        } else {
-            return result.failure(ExternalNotFoundError(
-                "'${node.path}' was not found!",
-                node.path.start,
-                node.path.end,
-                context
-            ))
-        }
     }
 
     private fun child(node: Node, reference: Value, context: Context): RuntimeResult {

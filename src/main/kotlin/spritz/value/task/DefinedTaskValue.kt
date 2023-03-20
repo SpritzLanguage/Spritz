@@ -1,25 +1,23 @@
 package spritz.value.task
 
-import spritz.error.interpreting.ReturnTypeMismatchError
+import spritz.error.interpreting.TypeMismatchError
 import spritz.interpreter.Interpreter
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
 import spritz.parser.node.Node
-import spritz.parser.nodes.ListNode
 import spritz.util.RequiredArgument
 import spritz.value.NullValue
+import spritz.value.PrimitiveValue
 import spritz.value.Value
 
 /**
  * @author surge
  * @since 03/03/2023
  */
-class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>, val body: Node, val expression: Boolean, val returnType: Value?) : TaskValue(identifier, "DefinedTask") {
+class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>, val body: Node, val expression: Boolean, val returnType: Value?) : TaskValue(identifier) {
 
-    init {
-        load()
-    }
+    override fun asJvmValue() = this
 
     override fun execute(passed: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
@@ -39,15 +37,13 @@ class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>
 
         val returnValue = (if (expression) value else null) ?: (result.returnValue ?: NullValue()).positioned(start, end).givenContext(context)
 
-        if (returnType != null) {
-            if (!returnValue.matchesType(returnType)) {
-                return result.failure(ReturnTypeMismatchError(
-                    "Returned value ($returnValue) was not of type $returnType",
-                    returnValue.start,
-                    returnValue.end,
-                    context
-                ))
-            }
+        if (returnValue !is NullValue && !PrimitiveValue.check(returnValue)) {
+            return result.failure(TypeMismatchError(
+                "Returned value did not conform to type '${returnValue.type}'",
+                start,
+                end,
+                context
+            ))
         }
 
         return result.success(returnValue)

@@ -1,20 +1,20 @@
 package spritz.value.task
 
 import spritz.api.CallData
-import spritz.error.interpreting.ReturnTypeMismatchError
-import spritz.interpreter.Interpreter
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
 import spritz.util.RequiredArgument
-import spritz.value.NullValue
 import spritz.value.Value
+import java.lang.reflect.Method
 
 /**
  * @author surge
  * @since 03/03/2023
  */
-class JvmTaskValue(identifier: String, val invoke: (functionData: CallData) -> RuntimeResult, val arguments: List<RequiredArgument>) : TaskValue(identifier, "Jvm Task") {
+class JvmTaskValue(identifier: String, val method: Method, val invoke: (functionData: CallData) -> RuntimeResult, val arguments: List<RequiredArgument>) : TaskValue(identifier, "Jvm Task") {
+
+    override fun asJvmValue() = method
 
     override fun execute(passed: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
@@ -35,7 +35,7 @@ class JvmTaskValue(identifier: String, val invoke: (functionData: CallData) -> R
     }
 
     override fun clone(): Value {
-        return JvmTaskValue(this.identifier, this.invoke, this.arguments)
+        return JvmTaskValue(this.identifier, this.method, this.invoke, this.arguments)
             .positioned(this.start, this.end)
             .givenContext(this.context)
     }

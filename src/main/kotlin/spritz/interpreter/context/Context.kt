@@ -1,7 +1,7 @@
 package spritz.interpreter.context
 
 import spritz.lexer.position.Position
-import spritz.value.symbols.Table
+import spritz.value.table.Table
 
 /**
  * @author surge

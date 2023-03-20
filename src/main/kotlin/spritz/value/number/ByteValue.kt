@@ -1,8 +1,8 @@
 package spritz.value.number
 
-import spritz.error.Error
 import spritz.lexer.token.Token
 import spritz.value.Value
+import spritz.error.Error
 
 /**
  * @author surge

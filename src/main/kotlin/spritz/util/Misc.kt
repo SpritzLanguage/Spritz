@@ -1,7 +1,10 @@
 package spritz.util
 
+import spritz.api.annotations.Identifier
 import spritz.lexer.token.TokenType
 import spritz.lexer.token.TokenType.*
+import java.lang.reflect.Field
+import java.lang.reflect.Method
 
 /**
  * @author surge
@@ -16,6 +19,9 @@ operator fun String.times(amount: Int): String {
 
     return result
 }
+
+fun Field.coercedName(): String = this.getAnnotation(Identifier::class.java)?.identifier ?: this.name
+fun Method.coercedName(): String = this.getAnnotation(Identifier::class.java)?.identifier ?: this.name
 
 val KEYWORDS = hashMapOf(
     // declaration keywords
@@ -43,11 +49,10 @@ val TYPES = hashMapOf(
     "int" to "int",
     "float" to "float",
     "string" to "string",
-    "boolean" to "bool",
+    "boolean" to "boolean",
     "list" to "list",
-    "dictionary" to "dict",
-    "byte" to "byte",
-    "method" to "method"
+    "dictionary" to "dictionary",
+    "byte" to "byte"
 )
 
 fun keyword(input: String) = KEYWORDS.containsValue(input) || TYPES.containsValue(input)

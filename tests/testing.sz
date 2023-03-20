@@ -1,0 +1,15 @@
+container TestContainer(a)
+
+task camelCaseFunction {
+
+}
+
+task<TestContainer> tester {
+    return TestContainer(3)
+}
+
+task<int> main {
+    std::println(tester()::a)
+
+    return 0
+}

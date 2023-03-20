@@ -1,9 +1,8 @@
 package spritz.value.number
 
-import spritz.error.Error
 import spritz.lexer.token.Token
-import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
+import spritz.error.Error
 
 /**
  * @author surge
@@ -62,7 +61,5 @@ class IntValue(value: Int) : NumberValue<Int>(value, "int") {
     override fun binComplement(operator: Token<*>): Pair<Value?, Error?> {
         return Pair(IntValue(this.value.toString(2).toInt().inv()), null)
     }
-
-    override fun matchesType(type: Value) = super.matchesType(type) || type is PrimitiveReferenceValue && type.type == "int"
 
 }

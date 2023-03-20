@@ -1,31 +1,22 @@
 package spritz.value.task
 
-import spritz.Spritz
-import spritz.api.annotations.Excluded
-import spritz.api.annotations.Identifier
 import spritz.error.Error
 import spritz.error.interpreting.CallArgumentMismatchError
-import spritz.error.interpreting.TypeMismatchError
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
 import spritz.util.RequiredArgument
-import spritz.value.PrimitiveReferenceValue
 import spritz.value.Value
-import spritz.value.string.StringValue
-import spritz.value.symbols.Symbol
-import spritz.value.symbols.SymbolData
-import spritz.value.symbols.Table
+import spritz.value.table.Symbol
+import spritz.value.table.Table
 
 /**
  * @author surge
- * @since 03/03/2023
+ * @since 18/03/2023
  */
-open class TaskValue(identifier: String, type: String) : Value(type, identifier = identifier) {
+abstract class TaskValue(identifier: String, type: String = "task") : Value(type, identifier) {
 
-    protected fun load() {
-        Spritz.loadInto(Companion(this), table, Context("task"))
-    }
+    abstract override fun asJvmValue(): Any
 
     protected fun generateContext(): Context {
         val new = Context(this.identifier, this.context, this.start)
@@ -55,16 +46,7 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
             ))
         }
 
-        required.forEachIndexed { index, argument ->
-            if (!given[index].matchesType(argument.type ?: PrimitiveReferenceValue("any"))) {
-                return result.failure(TypeMismatchError(
-                    "'${given[index]}' did not conform to type '${argument.type}'",
-                    start,
-                    end,
-                    context
-                ))
-            }
-        }
+        // TODO: Fix types
 
         return result.success(null)
     }
@@ -75,7 +57,7 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
 
             passedArgument.givenContext(context)
 
-            val result = context.table.set(Symbol(matched.name.value as String, passedArgument, SymbolData(immutable = true, matched.name.start, matched.name.end)), context, declaration = true)
+            val result = context.table.set(Symbol(matched.name.value as String, passedArgument, passedArgument.start, passedArgument.end).setImmutability(true), context, declaration = true)
 
             if (result.error != null) {
                 return result.error
@@ -103,14 +85,6 @@ open class TaskValue(identifier: String, type: String) : Value(type, identifier 
         return result.success(null)
     }
 
-    override fun matchesType(type: Value) = super.matchesType(type) || type is PrimitiveReferenceValue && type.type == "method"
-
     override fun toString() = "($type: $identifier)"
-
-    class Companion(@Excluded val task: TaskValue) {
-
-        val name = task.identifier
-
-    }
 
 }
