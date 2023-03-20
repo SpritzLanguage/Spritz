@@ -13,6 +13,7 @@ import spritz.value.NullValue
 import spritz.value.Value
 import spritz.value.bool.BooleanValue
 import spritz.value.container.JvmInstanceValue
+import spritz.value.list.ListValue
 import spritz.value.number.ByteValue
 import spritz.value.number.FloatValue
 import spritz.value.number.IntValue
@@ -46,6 +47,7 @@ object Coercion {
                 is Number -> coerceNumber(any)
                 is String -> StringValue(any)
                 is Method -> coerceMethod(instance!!, any.coercedName(), any)
+                is List<*> -> ListValue(any.map { coerce(it) }.toMutableList())
 
                 else -> JvmInstanceValue(any)
 

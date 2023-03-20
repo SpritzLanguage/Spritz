@@ -1,15 +1,22 @@
 package spritz.value.string
 
+import spritz.SpritzEnvironment
+import spritz.builtin.companions.StringCompanion
 import spritz.lexer.token.Token
 import spritz.value.Value
 import spritz.value.bool.BooleanValue
 import spritz.error.Error
+import spritz.interpreter.context.Context
 
 /**
  * @author surge
  * @since 18/03/2023
  */
 class StringValue(val value: String) : Value("string") {
+
+    init {
+        SpritzEnvironment.putIntoTable(StringCompanion(this), this.table, Context("string"))
+    }
 
     override fun asJvmValue() = value
 

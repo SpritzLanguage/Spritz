@@ -16,4 +16,9 @@ task<int> main {
     std::println(d::get("member_one"))
     d::remove("member_two")
     std::println(d)
+
+    for (char : "hello, world!"::to_char_list()) {
+        std::println(char)
+    }
+
 }

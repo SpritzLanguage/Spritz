@@ -22,14 +22,14 @@ class Table(val parent: Table? = null) {
             return this.getOverride!!(identifier, start, end, context)
         }
 
-        if (parent != null && !top) {
-            return parent.get(identifier, start, end, context)
-        }
-
         val existing = symbols.firstOrNull { it.name == identifier }
 
         if (existing != null) {
             return Result(existing.value, null)
+        }
+
+        if (parent != null && !top) {
+            return parent.get(identifier, start, end, context)
         }
 
         return Result(null, UndefinedReferenceError(
@@ -47,12 +47,19 @@ class Table(val parent: Table? = null) {
 
         if (declaration) {
             this.symbols.firstOrNull { it.name == symbol.name }?.let {
-                return Result(null, DualDeclarationError(
-                    "${it.name} was already defined",
-                    it.start,
-                    it.end,
-                    context
-                ))
+                if (forced) {
+                    it.value = symbol.value
+                    return Result(symbol.value, null)
+                } else {
+                    return Result(
+                        null, DualDeclarationError(
+                            "${it.name} was already defined",
+                            it.start,
+                            it.end,
+                            context
+                        )
+                    )
+                }
             }
 
             this.symbols.add(symbol)
