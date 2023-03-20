@@ -14,13 +14,13 @@ import spritz.value.NullValue
 import spritz.value.Value
 import spritz.value.bool.BooleanValue
 import spritz.value.container.DefinedContainerValue
+import spritz.value.dictionary.DictionaryValue
 import spritz.value.list.ListValue
 import spritz.value.number.*
 import spritz.value.string.StringValue
 import spritz.value.table.Symbol
 import spritz.value.table.Table
 import spritz.value.task.DefinedTaskValue
-import spritz.value.task.TaskValue
 
 /**
  * @author surge
@@ -36,6 +36,7 @@ class Interpreter {
         // primitives
         NumberNode::class.java to { node: Node, parentContext: Context, childContext: Context -> number(node as NumberNode, parentContext, childContext) },
         ListNode::class.java to { node: Node, parentContext: Context, childContext: Context -> list(node as ListNode, parentContext, childContext) },
+        DictionaryNode::class.java to { node: Node, parentContext: Context, childContext: Context -> dictionary(node as DictionaryNode, parentContext, childContext) },
         StringNode::class.java to { node: Node, parentContext: Context, childContext: Context -> string(node as StringNode, parentContext, childContext) },
 
         // values
@@ -216,6 +217,23 @@ class Interpreter {
         }
 
         return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(context))
+    }
+
+    private fun dictionary(node: DictionaryNode, context: Context, childContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+        val elements = hashMapOf<String, Value>()
+
+        node.elements.forEach { (key, value) ->
+            val value = result.register(this.visit(value, context))
+
+            if (result.shouldReturn()) {
+                return result
+            }
+
+            elements[key] = value!!
+        }
+
+        return result.success(DictionaryValue(elements).positioned(node.start, node.end).givenContext(context))
     }
 
     private fun string(node: StringNode, context: Context, childContext: Context): RuntimeResult {

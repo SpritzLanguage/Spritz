@@ -1,6 +1,7 @@
 package spritz.value.container
 
 import spritz.api.Coercion
+import spritz.api.annotations.Excluded
 import spritz.error.interpreting.JvmError
 import spritz.util.coercedName
 import spritz.value.Value
@@ -16,18 +17,23 @@ class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleNam
     init {
         this.table.setGet {identifier, start, end, context ->
             try {
-                var field: Any? = instance::class.java.declaredFields.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
+                var field: Any? = instance::class.java.declaredFields.filter { !it.isAnnotationPresent(Excluded::class.java) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
 
                 if (field == null) {
-                    field = instance::class.java.declaredMethods.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
+                    field = instance::class.java.declaredMethods.filter { !it.isAnnotationPresent(Excluded::class.java) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
                 }
 
                 if (field == null) {
-                    field = instance::class.java.declaredClasses.firstOrNull { it.name == identifier }
+                    field = instance::class.java.declaredClasses.filter { !it.isAnnotationPresent(Excluded::class.java) }.firstOrNull { it.name == identifier }
                 }
 
                 if (field == null) {
-                    throw Error("'$identifier' is not present in ${instance::class.java.simpleName}")
+                    return@setGet Result(null, JvmError(
+                        "'$identifier' is not present in ${instance::class.java.simpleName}",
+                        start,
+                        end,
+                        context
+                    ))
                 }
 
                 return@setGet Result(Coercion.IntoSpritz.coerce(field, instance), null)
@@ -43,7 +49,7 @@ class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleNam
 
         this.table.setSet {
             try {
-                val field: Field = instance::class.java.declaredFields.firstOrNull { field -> field.coercedName() == identifier }
+                val field: Field = instance::class.java.declaredFields.filter { !it.isAnnotationPresent(Excluded::class.java) }.firstOrNull { field -> field.coercedName() == identifier }
                     ?: throw Error("'$identifier' is not present in ${instance::class.java.simpleName}")
 
                 field.set(instance, it.value.asJvmValue())

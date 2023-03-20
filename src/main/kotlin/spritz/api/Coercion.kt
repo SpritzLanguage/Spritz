@@ -37,7 +37,11 @@ object Coercion {
 
             return when (any) {
                 is Value -> any
-                is Field -> coerce(any.get(instance))
+
+                is Field -> {
+                    coerce(any.get(instance))
+                }
+
                 is Boolean -> BooleanValue(any)
                 is Number -> coerceNumber(any)
                 is String -> StringValue(any)

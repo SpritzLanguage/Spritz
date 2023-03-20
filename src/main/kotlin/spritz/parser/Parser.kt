@@ -430,6 +430,96 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             ))
         }
 
+        if (token.type == OPEN_BRACE) {
+            advanceRegister(result)
+
+            val elements = hashMapOf<String, Node>()
+
+            if (this.currentToken.type == CLOSE_BRACE) {
+                advanceRegister(result)
+            } else {
+                if (this.currentToken.type != STRING) {
+                    return result.failure(ParsingError(
+                        "Expected string",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                val key = this.currentToken.value.toString()
+
+                advanceRegister(result)
+
+                if (this.currentToken.type != COLON) {
+                    return result.failure(ParsingError(
+                        "Expected ':'",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                advanceRegister(result)
+
+                val value = result.register(this.expression())
+
+                if (result.error != null) {
+                    return result
+                }
+
+                elements[key] = value!!
+
+                while (this.currentToken.type == COMMA) {
+                    advanceRegister(result)
+
+                    if (this.currentToken.type != STRING) {
+                        return result.failure(ParsingError(
+                            "Expected string",
+                            this.currentToken.start,
+                            this.currentToken.end
+                        ))
+                    }
+
+                    val key = this.currentToken.value.toString()
+
+                    advanceRegister(result)
+
+                    if (this.currentToken.type != COLON) {
+                        return result.failure(ParsingError(
+                            "Expected ':'",
+                            this.currentToken.start,
+                            this.currentToken.end
+                        ))
+                    }
+
+                    advanceRegister(result)
+
+                    val value = result.register(this.expression())
+
+                    if (result.error != null) {
+                        return result
+                    }
+
+                    elements[key!!] = value!!
+                }
+
+                if (this.currentToken.type != CLOSE_BRACE) {
+                    return result.failure(ParsingError(
+                        "Expected '}'",
+                        this.currentToken.start,
+                        this.currentToken.end
+                    ))
+                }
+
+                advanceRegister(result)
+            }
+
+            return result.success(DictionaryNode(
+                elements,
+                token.start,
+                this.currentToken.end
+            ))
+        }
+
         if (token.type == STRING) {
             advanceRegister(result)
 

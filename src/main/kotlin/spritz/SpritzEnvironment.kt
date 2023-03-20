@@ -2,6 +2,7 @@ package spritz
 
 import spritz.api.Coercion
 import spritz.api.Config
+import spritz.api.annotations.Excluded
 import spritz.builtin.Global
 import spritz.builtin.Standard
 import spritz.error.Error
@@ -76,13 +77,7 @@ class SpritzEnvironment(val config: Config = Config()) {
     }
 
     fun putIntoGlobal(instance: Any): SpritzEnvironment {
-        instance::class.java.declaredFields.forEach {
-            global.set(Symbol(it.coercedName(), Coercion.IntoSpritz.coerce(it).linked(), LinkPosition(), LinkPosition()).setImmutability(true), origin)
-        }
-
-        instance::class.java.declaredMethods.forEach {
-            global.set(Symbol(it.coercedName(), Coercion.IntoSpritz.coerce(it).linked(), LinkPosition(), LinkPosition()).setImmutability(true), origin)
-        }
+        putIntoTable(instance, global, origin)
 
         return this
     }
@@ -99,6 +94,31 @@ class SpritzEnvironment(val config: Config = Config()) {
     fun setErrorHandler(handler: (Error) -> Unit): SpritzEnvironment {
         errorHandler = handler
         return this
+    }
+
+    companion object {
+
+        @JvmStatic
+        fun putIntoTable(instance: Any, table: Table, context: Context) {
+            instance::class.java.declaredFields.forEach {
+                if (it.isAnnotationPresent(Excluded::class.java)) {
+                    return@forEach
+                }
+
+                it.isAccessible = true
+                table.set(Symbol(it.coercedName(), Coercion.IntoSpritz.coerce(it).linked(), LinkPosition(), LinkPosition()).setImmutability(true), context)
+            }
+
+            instance::class.java.declaredMethods.forEach {
+                if (it.isAnnotationPresent(Excluded::class.java)) {
+                    return@forEach
+                }
+
+                it.isAccessible = true
+                table.set(Symbol(it.coercedName(), Coercion.IntoSpritz.coerce(it, instance).linked(), LinkPosition(), LinkPosition()).setImmutability(true), context)
+            }
+        }
+
     }
 
 }

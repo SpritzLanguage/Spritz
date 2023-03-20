@@ -3,7 +3,9 @@ package spritz.builtin
 import spritz.api.annotations.Identifier
 import spritz.api.result.Result
 import spritz.api.result.Success
+import spritz.value.NullValue
 import spritz.value.Value
+import spritz.value.dictionary.DictionaryValue
 import spritz.value.list.ListValue
 import spritz.value.number.FloatValue
 import spritz.value.number.IntValue
