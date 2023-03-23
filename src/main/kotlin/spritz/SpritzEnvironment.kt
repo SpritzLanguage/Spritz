@@ -30,6 +30,13 @@ class SpritzEnvironment(val config: Config = Config()) {
     private var warningHandler: (Warning) -> Unit = {}
     private var errorHandler: (Error) -> Unit = {}
 
+    init {
+        if (config.loadDefaults) {
+            this.putInstance("std", Standard)
+            this.putIntoGlobal(Global)
+        }
+    }
+
     fun evaluate(fileName: String, content: String): EvaluationResult {
         val lexer = Lexer(fileName, content).lex()
 
@@ -55,13 +62,6 @@ class SpritzEnvironment(val config: Config = Config()) {
         }
 
         return EvaluationResult(interpreter.value, parser.warnings, null)
-    }
-
-    fun loadDefaults(): SpritzEnvironment {
-        this.putInstance("std", Standard)
-        this.putIntoGlobal(Global)
-
-        return this
     }
 
     fun putInstance(identifier: String, instance: Any): SpritzEnvironment {

@@ -14,7 +14,6 @@ object MiscTests {
     @JvmStatic
     fun main(args: Array<String>) {
         val spritzEnvironment = SpritzEnvironment()
-            .loadDefaults()
             .setWarningHandler {
                 println(it)
             }
