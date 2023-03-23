@@ -11,7 +11,7 @@ Spritz is still in a development phase and <b> should not </b> be used for produ
 ### Sample Code
 
 ```
-task<int> main(arguments: list<string>) {
+task<int> main(arguments: list) {
     std::println("Hello, world!")
     
     for (i : std::int_range(0, 10, 2)) {
