@@ -25,7 +25,7 @@ class DefinedContainerValue(identifier: String, val constructor: List<RequiredAr
 
         val instanceContext = Context(identifier)
 
-        instanceContext.table = Table()
+        instanceContext.table = Table(context.getOrigin().table)
 
         result.register(this.checkAndPopulate(constructor, passed, start, end, instanceContext))
 
@@ -51,6 +51,6 @@ class DefinedContainerValue(identifier: String, val constructor: List<RequiredAr
         return result.success(instance.positioned(start, end).givenContext(instanceContext))
     }
 
-    override fun toString() = "($identifier)"
+    override fun toString() = super.toString().ifEmpty { "($identifier)" }
 
 }

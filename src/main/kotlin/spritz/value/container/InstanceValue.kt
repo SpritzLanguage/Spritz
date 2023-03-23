@@ -14,6 +14,6 @@ open class InstanceValue(val parent: DefinedContainerValue, table: Table) : Valu
     }
 
     override fun asJvmValue() = this
-    override fun toString() = "(Instance of $type)"
+    override fun toString() = super.toString().ifEmpty { "(Instance of $identifier)" }
 
 }

@@ -1,24 +1,12 @@
+container ReprTest(a: int) {
+
+    task<string> repr {
+        return "test" + a
+    }
+
+}
+
 task<int> main {
-    const l = [1, 2, 3, 4]
-
-    std::println(l::length())
-    l::removeAt(1)
-    std::println(l)
-    std::println(l::length())
-
-    const d = {
-        "member_one": 2,
-        "member_two": "abc",
-        "member_three": l
-    }
-
-    std::println(d)
-    std::println(d::get("member_one"))
-    d::remove("member_two")
-    std::println(d)
-
-    for (char : "hello, world!"::to_char_list()) {
-        std::println(char)
-    }
-
+    std::println(ReprTest(5))
+    return 0
 }

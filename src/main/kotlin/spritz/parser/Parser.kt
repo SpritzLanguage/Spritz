@@ -826,7 +826,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
                         ))
                     }
 
-                    argumentType = result.register(this.atom())
+                    argumentType = result.register(this.atom(child = true))
 
                     if (result.error != null) {
                         return result

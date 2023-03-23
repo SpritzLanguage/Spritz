@@ -16,4 +16,12 @@ data class Context(val name: String, val parent: Context? = null, val parentEntr
         return this
     }
 
+    fun getOrigin(): Context {
+        if (this.parent == null) {
+            return this
+        }
+
+        return this.parent.getOrigin()
+    }
+
 }

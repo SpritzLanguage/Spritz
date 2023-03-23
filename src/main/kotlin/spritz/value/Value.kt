@@ -1,5 +1,7 @@
 package spritz.value
 
+import spritz.SpritzEnvironment
+import spritz.builtin.Global
 import spritz.error.Error
 import spritz.error.interpreting.IllegalOperationError
 import spritz.interfaces.Cloneable
@@ -9,7 +11,9 @@ import spritz.lexer.position.LinkPosition
 import spritz.lexer.position.Position
 import spritz.lexer.token.Token
 import spritz.value.bool.BooleanValue
+import spritz.value.string.StringValue
 import spritz.value.table.Table
+import spritz.value.task.DefinedTaskValue
 
 /**
  * @author surge
@@ -61,7 +65,9 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
         return this
     }
 
-    abstract override fun toString(): String
+    override fun toString(): String {
+        return this.table.find("repr") { it.value is DefinedTaskValue }?.execute(arrayListOf())?.value?.toString() ?: ""
+    }
 
     fun positioned(start: Position, end: Position): Value {
         this.start = start

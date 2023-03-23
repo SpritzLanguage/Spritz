@@ -4,6 +4,7 @@ import spritz.error.interpreting.DualDeclarationError
 import spritz.error.interpreting.UndefinedReferenceError
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
+import spritz.value.Value
 import spritz.value.table.result.Result
 
 /**
@@ -85,6 +86,10 @@ class Table(val parent: Table? = null) {
                 context
             )
         )
+    }
+
+    fun find(identifier: String, predicate: (Symbol) -> Boolean): Value? {
+        return symbols.firstOrNull { predicate(it) }?.value
     }
 
     fun setGet(get: (Table.(String, Position, Position, Context) -> Result)): Table {
