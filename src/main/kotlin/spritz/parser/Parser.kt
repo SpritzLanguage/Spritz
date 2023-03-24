@@ -597,14 +597,14 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             return result.success(task as Node)
         }
 
-        if (token.matches("container")) {
-            val container = result.register(this.container())
+        if (token.matches("class")) {
+            val `class` = result.register(this.`class`())
 
             if (result.error != null) {
                 return result
             }
 
-            return result.success(container as Node)
+            return result.success(`class` as Node)
         }
 
         if (token.matches("for")) {
@@ -782,7 +782,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         ))
     }
 
-    private fun container(): ParseResult {
+    private fun `class`(): ParseResult {
         val result = ParseResult()
         val start = this.currentToken.start
 
@@ -861,7 +861,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             advanceRegister(result)
         }
 
-        return result.success(ContainerDefineNode(name, constructor, body, start, this.currentToken.end))
+        return result.success(ClassDefineNode(name, constructor, body, start, this.currentToken.end))
     }
 
     private fun `for`(): ParseResult {

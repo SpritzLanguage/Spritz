@@ -2,6 +2,7 @@ package spritz.api
 
 import spritz.api.result.Failure
 import spritz.api.result.Success
+import spritz.error.interpreting.JvmError
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.LinkPosition
@@ -12,7 +13,7 @@ import spritz.util.coercedName
 import spritz.value.NullValue
 import spritz.value.Value
 import spritz.value.bool.BooleanValue
-import spritz.value.container.JvmInstanceValue
+import spritz.value.`class`.JvmInstanceValue
 import spritz.value.list.ListValue
 import spritz.value.number.ByteValue
 import spritz.value.number.FloatValue
@@ -21,6 +22,7 @@ import spritz.value.number.NumberValue
 import spritz.value.string.StringValue
 import spritz.value.task.JvmTaskValue
 import java.lang.reflect.Field
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 /**
@@ -78,18 +80,27 @@ object Coercion {
                         arguments.add(getEquivalentPrimitive(value, types[index]))
                     }
 
-                    val result = method.invoke(instance, *arguments.toTypedArray())
+                    try {
+                        val result = method.invoke(instance, *arguments.toTypedArray())
 
-                    if (result is RuntimeResult) {
-                        return@JvmTaskValue result
-                    }
+                        if (result is RuntimeResult) {
+                            return@JvmTaskValue result
+                        }
 
-                    if (result is Success) {
-                        RuntimeResult().success(result.value)
-                    } else if (result is Failure) {
-                        RuntimeResult().failure(result.error!!)
-                    } else {
-                        RuntimeResult().success(coerce(result))
+                        if (result is Success) {
+                            RuntimeResult().success(result.value)
+                        } else if (result is Failure) {
+                            RuntimeResult().failure(result.error!!)
+                        } else {
+                            RuntimeResult().success(coerce(result))
+                        }
+                    } catch (exception: InvocationTargetException) {
+                        RuntimeResult().failure(JvmError(
+                            "JVM Exception occurred: '${exception.targetException}'",
+                            data.start,
+                            data.end,
+                            data.context
+                        ))
                     }
                 },
 

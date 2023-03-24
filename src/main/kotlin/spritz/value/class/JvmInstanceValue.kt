@@ -1,4 +1,4 @@
-package spritz.value.container
+package spritz.value.`class`
 
 import spritz.api.Coercion
 import spritz.api.annotations.Excluded

@@ -4,10 +4,10 @@ import spritz.api.annotations.Identifier
 import spritz.util.NUMBERS
 import spritz.value.PrimitiveValue
 import spritz.value.bool.BooleanValue
-import spritz.value.container.DefinedContainerValue
-import spritz.value.container.InstanceValue
-import spritz.value.container.JvmContainerValue
-import spritz.value.container.JvmInstanceValue
+import spritz.value.`class`.DefinedClassValue
+import spritz.value.`class`.InstanceValue
+import spritz.value.`class`.JvmClassValue
+import spritz.value.`class`.JvmInstanceValue
 import spritz.value.list.ListValue
 import spritz.value.number.FloatValue
 import spritz.value.number.IntValue
@@ -39,7 +39,7 @@ object Global {
     @JvmField val string = PrimitiveValue("string") { given, required -> given is StringValue && required.type == "string" }
     @JvmField val task = PrimitiveValue("task") { given, required -> given is TaskValue && required.type == "task" }
     @JvmField val list = PrimitiveValue("list") { given, required -> given is ListValue && required.type == "list" }
-    @JvmField val container = PrimitiveValue("container") { given, required -> (given is DefinedContainerValue || given is JvmContainerValue) && required.type == "container" }
+    @Identifier("class") @JvmField val `class` = PrimitiveValue("class") { given, required -> (given is DefinedClassValue || given is JvmClassValue) && required.type == "class" }
     @JvmField val instance = PrimitiveValue("instance") { given, required -> (given is InstanceValue || given is JvmInstanceValue) && required.type == "instance" }
 
 }

@@ -45,14 +45,12 @@ class ListCompanion(@Excluded val list: ListValue) {
         return this.list.elements.isEmpty()
     }
 
-    fun join(separator: String): String {
+    fun join(separator: String, format: String): String {
         var concat = ""
 
-        this.list.elements.forEach {
-            concat += it.toString() + separator
+        this.list.elements.forEachIndexed { index, value ->
+            concat += format.replace("%", value.toString()) + if (index != this.list.elements.lastIndex) separator else ""
         }
-
-        concat.removeSuffix(separator)
 
         return concat
     }

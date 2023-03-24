@@ -1,6 +1,7 @@
 package spritz.value.task
 
 import spritz.api.CallData
+import spritz.error.interpreting.JvmError
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position

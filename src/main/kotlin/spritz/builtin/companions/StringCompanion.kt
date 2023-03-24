@@ -46,4 +46,20 @@ class StringCompanion(@Excluded val string: StringValue) {
         return string.value.split(delimiter)
     }
 
+    fun int(): Int {
+        return this.string.value.toInt()
+    }
+
+    fun float(): Float {
+        return this.string.value.toFloat()
+    }
+
+    fun byte(): Byte {
+        return this.string.value.toByte()
+    }
+
+    fun boolean(): Boolean {
+        return this.string.value.toBooleanStrict()
+    }
+
 }

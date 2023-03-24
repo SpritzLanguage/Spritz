@@ -12,9 +12,7 @@ import spritz.lexer.Lexer
 import spritz.lexer.position.LinkPosition
 import spritz.parser.Parser
 import spritz.util.coercedName
-import spritz.value.Value
-import spritz.value.container.JvmContainerValue
-import spritz.value.table.Symbol
+import spritz.value.`class`.JvmClassValue
 import spritz.value.table.Table
 import spritz.value.table.TableAccessor
 import spritz.warning.Warning
@@ -78,7 +76,7 @@ class SpritzEnvironment(val config: Config = Config()) {
         TableAccessor(global)
             .identifier(identifier)
             .immutable(true)
-            .set(JvmContainerValue(identifier, clazz).linked())
+            .set(JvmClassValue(identifier, clazz).linked())
 
         return this
     }

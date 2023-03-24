@@ -1,4 +1,4 @@
-package spritz.value.container
+package spritz.value.`class`
 
 import spritz.interpreter.Interpreter
 import spritz.interpreter.RuntimeResult
@@ -7,7 +7,6 @@ import spritz.lexer.position.Position
 import spritz.parser.node.Node
 import spritz.util.RequiredArgument
 import spritz.value.Value
-import spritz.value.table.Symbol
 import spritz.value.table.Table
 import spritz.value.table.TableAccessor
 import spritz.value.task.TaskValue
@@ -16,7 +15,7 @@ import spritz.value.task.TaskValue
  * @author surge
  * @since 04/03/2023
  */
-class DefinedContainerValue(identifier: String, val constructor: List<RequiredArgument>, val body: Node?) : TaskValue(identifier = identifier, identifier) {
+class DefinedClassValue(identifier: String, val constructor: List<RequiredArgument>, val body: Node?) : TaskValue(identifier = identifier, identifier) {
 
     override fun asJvmValue() = this
 

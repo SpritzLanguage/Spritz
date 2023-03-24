@@ -49,19 +49,19 @@ task<int> expression {
 
 Tasks should follow the `snake_case` name formatting, and not `camelCase` or `PascalCase`.
 
-## Containers
-A container with no parameters should not use `()` and a container with no 
+## Classes
+A class with no parameters should not use `()` and a class with no 
 inner tasks or members should not use `{}`.
 ```
-container Example
+class Example
 ```
 
 ```
-container DataContainer(a: int, b: int)
+class DataClass(a: int, b: int)
 ```
 
 ```
-container WithBody {
+class WithBody {
 
     task<int> example {
         return 0
@@ -70,7 +70,7 @@ container WithBody {
 }
 ```
 
-Containers should <b>always</b> use `PascalCase`, rather than `camelCase` or `snake_case`.
+Classes should <b>always</b> use `PascalCase`, rather than `camelCase` or `snake_case`.
 
 ## Dictionaries
 Dictionaries should <b>always</b> be declared on multiple lines, unless its initialised with only a single value.
@@ -88,7 +88,7 @@ const b = { "member1": 2 }
 
 ### Incorrect
 ```
-const a = { "member1": 2, "member2": 3, "member3": 4}
+const a = { "member1": 2, "member2": 3, "member3": 4 }
 
 const b = {
     "member1": 2

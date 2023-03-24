@@ -25,7 +25,9 @@ object MiscTests {
         val main = TableAccessor(spritzEnvironment.global)
             .identifier("main")
             .predicate { it is DefinedTaskValue && it.arguments.isEmpty() }
-            .find().value?.execute(arrayListOf())?.also {
+            .find()
+            .value
+            ?.execute(arrayListOf())?.also {
                 if (it.error != null) {
                     println(it.error)
                 }

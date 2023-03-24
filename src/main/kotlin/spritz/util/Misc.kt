@@ -26,10 +26,9 @@ fun Method.coercedName(): String = this.getAnnotation(Identifier::class.java)?.i
 val KEYWORDS = hashMapOf(
     // declaration keywords
     "task" to "task",
-    "container" to "container",
+    "class" to "class",
     "mutable" to "mut",
     "constant" to "const",
-    "external" to "external",
     "as" to "as",
     "is" to "is",
 

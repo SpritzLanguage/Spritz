@@ -42,7 +42,7 @@ Primitives:
 <li> <code>boolean</code> </li>
 <li> <code>list</code> </li>
 <li> <code>dictionary</code> </li>
-<li> <code>container</code> </li>
+<li> <code>class</code> </li>
 <li> <code>instance</code> </li>
 <li> <code>task</code> </li>
 </ul>
@@ -72,6 +72,18 @@ Gets a list of `string` instances, with each element being a character in the cu
 ### `<list> split(delimiter)`
 Splits the string by the delimiter and returns it as a list
 
+### `<int> int()`
+Converts the string to an integer value.
+
+### `<float> float()`
+Converts the string to a float value.
+
+### `<byte> byte()`
+Converts the string to a byte value.
+
+### `<boolean> boolean()`
+Converts the string to a boolean value.
+
 ### List
 ### `<any> get(index: int)`
 Gets the element at the given `index`.
@@ -91,8 +103,8 @@ Checks if the list is empty.
 ### `<list> after(index: int)`
 Gets a list of elements after the given index (inclusive).
 
-### `<string> join(separator: string)`
-Returns a string that represents the concatenated list values.
+### `<string> join(separator: string, format: string)`
+Returns a string that represents the concatenated list values, with the element being formatted by `format`, with `%` representing the item.
 
 ### Dictionary
 ### `<any> get(key: string)`

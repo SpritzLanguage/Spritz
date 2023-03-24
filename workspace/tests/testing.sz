@@ -1,4 +1,4 @@
-container Test {
+class Test {
 
     task<number> add(a: number, b: number) = a + b
     task<number> add(a: number, b: number, c: number) = a + b + c
@@ -7,9 +7,9 @@ container Test {
 
 }
 
-container Other
+class Other
 
-task<boolean> isinstance(value: any, cont: container) = value is cont
+task<boolean> isinstance(value: any, cont: class) = value is cont
 
 task<int> main {
     const a = Test()

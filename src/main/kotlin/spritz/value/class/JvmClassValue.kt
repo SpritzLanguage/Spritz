@@ -1,4 +1,4 @@
-package spritz.value.container
+package spritz.value.`class`
 
 import spritz.error.interpreting.JvmError
 import spritz.interpreter.RuntimeResult
@@ -11,7 +11,7 @@ import spritz.value.task.TaskValue
  * @author surge
  * @since 04/03/2023
  */
-class JvmContainerValue(identifier: String, val clazz: Class<*>) : TaskValue(identifier = identifier, identifier) {
+class JvmClassValue(identifier: String, val clazz: Class<*>) : TaskValue(identifier = identifier, identifier) {
 
     override fun asJvmValue() = clazz
 

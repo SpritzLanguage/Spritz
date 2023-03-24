@@ -15,12 +15,11 @@ import spritz.value.NullValue
 import spritz.value.PrimitiveValue
 import spritz.value.Value
 import spritz.value.bool.BooleanValue
-import spritz.value.container.DefinedContainerValue
+import spritz.value.`class`.DefinedClassValue
 import spritz.value.dictionary.DictionaryValue
 import spritz.value.list.ListValue
 import spritz.value.number.*
 import spritz.value.string.StringValue
-import spritz.value.table.Symbol
 import spritz.value.table.Table
 import spritz.value.table.TableAccessor
 import spritz.value.task.DefinedTaskValue
@@ -47,7 +46,7 @@ class Interpreter {
         AssignmentNode::class.java to { node: Node, parentContext: Context, childContext: Context -> assignment(node as AssignmentNode, parentContext, childContext) },
         AccessNode::class.java to { node: Node, parentContext: Context, childContext: Context -> access(node as AccessNode, parentContext, childContext) },
         TaskDefineNode::class.java to { node: Node, parentContext: Context, childContext: Context -> defineTask(node as TaskDefineNode, parentContext, childContext) },
-        ContainerDefineNode::class.java to { node: Node, parentContext: Context, childContext: Context -> defineContainer(node as ContainerDefineNode, parentContext, childContext) },
+        ClassDefineNode::class.java to { node: Node, parentContext: Context, childContext: Context -> defineClass(node as ClassDefineNode, parentContext, childContext) },
         TaskCallNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callTask(node as TaskCallNode, parentContext, childContext) },
 
         // branch control
@@ -86,6 +85,10 @@ class Interpreter {
 
         if (result.shouldReturn()) {
             return result
+        }
+
+        if (node.operator.type == OR && left is BooleanValue && left.value) {
+            return result.success(BooleanValue(true).positioned(node.start, node.end).givenContext(context))
         }
 
         val right = result.register(this.visit(node.right, context))
@@ -494,7 +497,7 @@ class Interpreter {
         return result.success(task)
     }
 
-    private fun defineContainer(node: ContainerDefineNode, context: Context, childContext: Context): RuntimeResult {
+    private fun defineClass(node: ClassDefineNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
         val name = node.name.value as String
@@ -515,18 +518,18 @@ class Interpreter {
             }
         }
 
-        val container = DefinedContainerValue(name, constructor, node.body).positioned(node.start, node.end).givenContext(context)
+        val `class` = DefinedClassValue(name, constructor, node.body).positioned(node.start, node.end).givenContext(context)
 
         val set = TableAccessor(context.table)
             .identifier(name)
             .immutable(true)
-            .set(container, declaration = true, data = Table.Data(node.start, node.end, context))
+            .set(`class`, declaration = true, data = Table.Data(node.start, node.end, context))
 
         if (set.error != null) {
             return result.failure(set.error)
         }
 
-        return result.success(container)
+        return result.success(`class`)
     }
 
     private fun callTask(node: TaskCallNode, context: Context, childContext: Context): RuntimeResult {

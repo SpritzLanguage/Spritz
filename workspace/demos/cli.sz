@@ -1,13 +1,13 @@
-container Command(name, execute)
+class Command(name, arguments, execute)
 
 task<int> main {
     const commands = [
-        Command("quit", task (args) {
-            std::exit_process(0)
+        Command("quit", ["status"], task (args) {
+            std::exit_process(args::get(0)::int())
         }),
 
-        Command("echo", task (args) {
-            std::println(args::join(" "))
+        Command("echo", null, task (args) {
+            std::println(args::join(" ", "%"))
         })
     ]
 
@@ -24,7 +24,12 @@ task<int> main {
 
         for (command : commands) {
             if (input::get(0) ~= command::name) {
-                command::execute(arguments)
+                if (command::arguments == null || arguments::length() == command::arguments::length()) {
+                    command::execute(arguments)
+                } else {
+                    std::println("Invalid arguments for '" + command::name + "'. Expected '" + command::name + " " + command::arguments::join(" ", "[%]") + "'")
+                }
+
                 found = true
                 break
             }
