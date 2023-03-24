@@ -20,14 +20,7 @@ object MiscTests {
                 println(it)
             }
 
-        spritzEnvironment.evaluate("testing", File("testing.sz").readText(Charset.defaultCharset()))
-
-        /* val main = spritzEnvironment.get("main") as DefinedTaskValue
-        val result = main.execute(arrayListOf())
-
-        if (result.error != null) {
-            println(result.error)
-        } */
+        spritzEnvironment.evaluate("cli.sz", File("demos/cli.sz").readText(Charset.defaultCharset()))
 
         val main = TableAccessor(spritzEnvironment.global)
             .identifier("main")

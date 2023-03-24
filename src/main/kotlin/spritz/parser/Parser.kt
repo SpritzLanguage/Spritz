@@ -673,21 +673,16 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             advanceRegister(result)
         }
 
-        if (this.currentToken.type != IDENTIFIER) {
-            return result.failure(ParsingError(
-                "Expected identifier",
-                this.currentToken.start,
-                this.currentToken.end
-            ))
-        }
+        var name = ANONYMOUS
 
-        val name = this.currentToken.value as String
+        if (this.currentToken.type == IDENTIFIER) {
+            name = this.currentToken.value.toString()
+            advanceRegister(result)
+        }
 
         if (name.any { it.isUpperCase() }) {
             result.warn(Warning("Name should be in snake_case (upper case char detected)", this.currentToken.start.clone()))
         }
-
-        advanceRegister(result)
 
         val arguments = mutableListOf<Argument>()
 

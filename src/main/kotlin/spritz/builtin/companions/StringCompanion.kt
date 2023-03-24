@@ -42,4 +42,8 @@ class StringCompanion(@Excluded val string: StringValue) {
         return string.value.map { it.toString() }
     }
 
+    fun split(delimiter: String): List<String> {
+        return string.value.split(delimiter)
+    }
+
 }

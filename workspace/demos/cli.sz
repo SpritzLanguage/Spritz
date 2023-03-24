@@ -1,0 +1,38 @@
+container Command(name, execute)
+
+task<int> main {
+    const commands = [
+        Command("quit", task (args) {
+            std::exit_process(0)
+        }),
+
+        Command("echo", task (args) {
+            std::println(args::join(" "))
+        })
+    ]
+
+    while (true) {
+        const input = std::readln()::split(" ")
+
+        if (input::is_empty()) {
+            continue
+        }
+
+        const arguments = input::after(1)
+
+        mut found = false
+
+        for (command : commands) {
+            if (input::get(0) ~= command::name) {
+                command::execute(arguments)
+                found = true
+                break
+            }
+        }
+
+        if (!found) {
+            std::println("Command not found!")
+        }
+    }
+
+}

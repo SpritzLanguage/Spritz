@@ -69,6 +69,9 @@ Gets a string with the same content as the current string, but lowercase.
 ### `<string> to_char_list()`
 Gets a list of `string` instances, with each element being a character in the current string.
 
+### `<list> split(delimiter)`
+Splits the string by the delimiter and returns it as a list
+
 ### List
 ### `<any> get(index: int)`
 Gets the element at the given `index`.
@@ -81,6 +84,15 @@ Removes the element at the given `index`, and returns that element.
 
 ### `<int> length()`
 Gets the length of the list.
+
+### `<boolean> is_empty()`
+Checks if the list is empty.
+
+### `<list> after(index: int)`
+Gets a list of elements after the given index (inclusive).
+
+### `<string> join(separator: string)`
+Returns a string that represents the concatenated list values.
 
 ### Dictionary
 ### `<any> get(key: string)`

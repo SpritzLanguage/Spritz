@@ -75,4 +75,9 @@ object Standard {
         return Success(ListValue(elements.toMutableList()))
     }
 
+    @Identifier("exit_process")
+    fun exitProcess(status: Int) {
+        kotlin.system.exitProcess(status)
+    }
+
 }

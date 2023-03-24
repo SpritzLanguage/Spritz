@@ -9,6 +9,7 @@ import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
 import spritz.parser.nodes.*
 import spritz.parser.nodes.condition.ConditionNode
+import spritz.util.ANONYMOUS
 import spritz.util.RequiredArgument
 import spritz.value.NullValue
 import spritz.value.PrimitiveValue
@@ -53,7 +54,9 @@ class Interpreter {
         ConditionNode::class.java to { node: Node, parentContext: Context, childContext: Context -> condition(node as ConditionNode, parentContext, childContext) },
         ForNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `for`(node as ForNode, parentContext, childContext) },
         WhileNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `while`(node as WhileNode, parentContext, childContext) },
-        ReturnNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callReturn(node as ReturnNode, parentContext, childContext) }
+        ReturnNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callReturn(node as ReturnNode, parentContext, childContext) },
+        ContinueNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callContinue(node as ContinueNode, parentContext, childContext) },
+        BreakNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callBreak(node as BreakNode, parentContext, childContext) }
     )
 
     /**
@@ -482,7 +485,7 @@ class Interpreter {
             .identifier(name)
             .immutable(true)
             .predicate { it is DefinedTaskValue && it.arguments.size == arguments.size }
-            .set(task, declaration = true, data = Table.Data(node.start, node.end, context))
+            .set(task, declaration = true, forced = name == ANONYMOUS, data = Table.Data(node.start, node.end, context))
 
         if (set.error != null) {
             return result.failure(set.error)
@@ -596,6 +599,14 @@ class Interpreter {
         }
 
         return result.successReturn(value)
+    }
+
+    private fun callContinue(node: ContinueNode, context: Context, childContext: Context): RuntimeResult {
+        return RuntimeResult().successContinue()
+    }
+
+    private fun callBreak(node: BreakNode, context: Context, childContext: Context): RuntimeResult {
+        return RuntimeResult().successBreak()
     }
 
     private fun `for`(node: ForNode, context: Context, childContext: Context): RuntimeResult {

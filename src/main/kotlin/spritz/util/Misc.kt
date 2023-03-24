@@ -51,6 +51,8 @@ val NUMBERS = listOf(
     "number"
 )
 
+val ANONYMOUS = "<anonymous>"
+
 fun keyword(input: String) = KEYWORDS.containsValue(input)
 
 fun unary(type: TokenType) = type == NEGATE || type == BIN_COMPLEMENT
