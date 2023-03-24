@@ -7,4 +7,4 @@ import spritz.lexer.position.Position
  * @author surge
  * @since 02/03/2023
  */
-class TypeMismatchError(details: String, start: Position, end: Position, context: Context) : RuntimeError("CallArgumentMismatchError", details, start, end, context)
+class TypeMismatchError(details: String, start: Position, end: Position, context: Context) : RuntimeError("TypeMismatchError", details, start, end, context)

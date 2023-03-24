@@ -167,8 +167,8 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         }
 
         val node = result.register(this.binaryOperation({ this.comparisonExpression() }, hashMapOf(
-            AND to "&&",
-            OR to "||"
+            AND to null,
+            OR to null
         )))
 
         if (result.error != null) {
@@ -207,7 +207,8 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             ARROW_LEFT to null,
             LESS_THAN_OR_EQUAL_TO to null,
             ARROW_RIGHT to null,
-            GREATER_THAN_OR_EQUAL_TO to null
+            GREATER_THAN_OR_EQUAL_TO to null,
+            KEYWORD to "is"
         )))
 
         if (result.error != null) {
@@ -818,15 +819,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
                 if (this.currentToken.type == COLON) {
                     advanceRegister(result)
 
-                    if (this.currentToken.type != IDENTIFIER && !type(this.currentToken.value as String)) {
-                        return result.failure(ParsingError(
-                            "Expected identifier",
-                            this.currentToken.start,
-                            this.currentToken.end
-                        ))
-                    }
-
-                    argumentType = result.register(this.atom(child = true))
+                    argumentType = result.register(this.call(child = true, type = true))
 
                     if (result.error != null) {
                         return result

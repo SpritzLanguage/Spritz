@@ -121,6 +121,6 @@ open class NumberValue<T : Number>(val value: T, type: String) : Value(type) {
         }
     }
 
-    private fun shouldConvert(other: NumberValue<*>): Boolean = other.value is Float
+    private fun shouldConvert(other: NumberValue<*>): Boolean = this.value is Float || other.value is Float
 
 }

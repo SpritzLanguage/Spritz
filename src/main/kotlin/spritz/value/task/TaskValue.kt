@@ -12,6 +12,7 @@ import spritz.value.PrimitiveValue
 import spritz.value.Value
 import spritz.value.table.Symbol
 import spritz.value.table.Table
+import spritz.value.table.TableAccessor
 
 /**
  * @author surge
@@ -20,6 +21,12 @@ import spritz.value.table.Table
 abstract class TaskValue(identifier: String, type: String = "task") : Value(type, identifier) {
 
     abstract override fun asJvmValue(): Any
+
+    protected fun generateExecuteContext(): Context {
+        val context = Context(this.identifier, this.context, this.start)
+        context.table = Table(context.parent!!.table)
+        return context
+    }
 
     protected fun check(required: List<RequiredArgument>, given: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val result = RuntimeResult()
@@ -50,7 +57,7 @@ abstract class TaskValue(identifier: String, type: String = "task") : Value(type
                 return@forEachIndexed
             }
 
-            if (givenValue !is NullValue && (!PrimitiveValue.check(givenValue, matched.type) || givenValue.type != matched.type.type)) {
+            if (givenValue !is NullValue && !(PrimitiveValue.check(givenValue, matched.type) || givenValue.type == matched.type.type)) {
                 return result.failure(TypeMismatchError(
                     "Given value did not conform to type '${matched.type.type}' (got '${givenValue.type}')",
                     givenValue.start,
@@ -69,7 +76,10 @@ abstract class TaskValue(identifier: String, type: String = "task") : Value(type
 
             passedArgument.givenContext(context)
 
-            val result = context.table.set(Symbol(matched.name.value as String, passedArgument, passedArgument.start, passedArgument.end).setImmutability(true), context, declaration = true)
+            val result = TableAccessor(context.table)
+                .identifier(matched.name.value.toString())
+                .immutable(true)
+                .set(passedArgument, declaration = true, data = Table.Data(passedArgument.start, passedArgument.end, context))
 
             if (result.error != null) {
                 return result.error

@@ -16,6 +16,7 @@ import spritz.value.Value
 import spritz.value.container.JvmContainerValue
 import spritz.value.table.Symbol
 import spritz.value.table.Table
+import spritz.value.table.TableAccessor
 import spritz.warning.Warning
 
 /**
@@ -65,13 +66,19 @@ class SpritzEnvironment(val config: Config = Config()) {
     }
 
     fun putInstance(identifier: String, instance: Any): SpritzEnvironment {
-        global.set(Symbol(identifier, Coercion.IntoSpritz.coerce(instance).linked(), LinkPosition(), LinkPosition()).setImmutability(true), origin)
+        TableAccessor(global)
+            .identifier(identifier)
+            .immutable(true)
+            .set(Coercion.IntoSpritz.coerce(instance).linked())
 
         return this
     }
 
     fun putClass(identifier: String, clazz: Class<*>): SpritzEnvironment {
-        global.set(Symbol(identifier, JvmContainerValue(identifier, clazz).linked(), LinkPosition(), LinkPosition()).setImmutability(true), origin)
+        TableAccessor(global)
+            .identifier(identifier)
+            .immutable(true)
+            .set(JvmContainerValue(identifier, clazz).linked())
 
         return this
     }
@@ -81,10 +88,6 @@ class SpritzEnvironment(val config: Config = Config()) {
 
         return this
     }
-
-    /*fun get(identifier: String): Value? {
-        return global.get(identifier, LinkPosition(), LinkPosition(), origin).value
-    }*/
 
     fun setWarningHandler(handler: (Warning) -> Unit): SpritzEnvironment {
         warningHandler = handler
@@ -106,7 +109,11 @@ class SpritzEnvironment(val config: Config = Config()) {
                 }
 
                 it.isAccessible = true
-                table.set(Symbol(it.coercedName(), Coercion.IntoSpritz.coerce(it).linked(), LinkPosition(), LinkPosition()).setImmutability(true), context)
+
+                TableAccessor(table)
+                    .identifier(it.coercedName())
+                    .immutable(true)
+                    .set(Coercion.IntoSpritz.coerce(it).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
             }
 
             instance::class.java.declaredMethods.forEach {
@@ -115,7 +122,11 @@ class SpritzEnvironment(val config: Config = Config()) {
                 }
 
                 it.isAccessible = true
-                table.set(Symbol(it.coercedName(), Coercion.IntoSpritz.coerce(it, instance).linked(), LinkPosition(), LinkPosition()).setImmutability(true), context)
+
+                TableAccessor(table)
+                    .identifier(it.coercedName())
+                    .immutable(true)
+                    .set(Coercion.IntoSpritz.coerce(it, instance).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
             }
         }
 

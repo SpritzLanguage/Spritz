@@ -31,6 +31,7 @@ val KEYWORDS = hashMapOf(
     "constant" to "const",
     "external" to "external",
     "as" to "as",
+    "is" to "is",
 
     // loops
     "for" to "for",
@@ -44,19 +45,13 @@ val KEYWORDS = hashMapOf(
     "break" to "break"
 )
 
-val TYPES = hashMapOf(
-    // inbuilt types
-    "int" to "int",
-    "float" to "float",
-    "string" to "string",
-    "boolean" to "boolean",
-    "list" to "list",
-    "dictionary" to "dictionary",
-    "byte" to "byte"
+val NUMBERS = listOf(
+    "int",
+    "float",
+    "number"
 )
 
-fun keyword(input: String) = KEYWORDS.containsValue(input) || TYPES.containsValue(input)
-fun type(input: String) = TYPES.containsValue(input)
+fun keyword(input: String) = KEYWORDS.containsValue(input)
 
 fun unary(type: TokenType) = type == NEGATE || type == BIN_COMPLEMENT
 fun modifier(type: TokenType) = type == ASSIGNMENT || type == INCREMENT || type == DEINCREMENT || type == INCREASE_BY || type == DECREASE_BY || type == MULTIPLY_BY || type == DIVIDE_BY

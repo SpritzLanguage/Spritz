@@ -31,7 +31,7 @@ open class Error(val name: String, val details: String, val start: Position, val
 
         if (start !is LinkPosition && end !is LinkPosition && end.column - start.column >= 0) {
             result += " ".repeat(start.column - countLeadingWhitespace(raw))
-            result += "^".repeat(end.column - start.column)
+            result += "^"
         }
 
         return result

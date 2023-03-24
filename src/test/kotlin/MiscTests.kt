@@ -1,7 +1,5 @@
 import spritz.SpritzEnvironment
-import spritz.builtin.Global
-import spritz.builtin.Standard
-import spritz.value.table.TableFinder
+import spritz.value.table.TableAccessor
 import spritz.value.task.DefinedTaskValue
 import java.io.File
 import java.nio.charset.Charset
@@ -31,9 +29,9 @@ object MiscTests {
             println(result.error)
         } */
 
-        val main = TableFinder(spritzEnvironment.global)
+        val main = TableAccessor(spritzEnvironment.global)
             .identifier("main")
-            .filter { it is DefinedTaskValue && it.arguments.isEmpty() }
+            .predicate { it is DefinedTaskValue && it.arguments.isEmpty() }
             .find().value?.execute(arrayListOf())?.also {
                 if (it.error != null) {
                     println(it.error)

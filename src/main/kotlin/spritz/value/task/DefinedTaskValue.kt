@@ -10,6 +10,7 @@ import spritz.util.RequiredArgument
 import spritz.value.NullValue
 import spritz.value.PrimitiveValue
 import spritz.value.Value
+import spritz.value.table.Table
 
 /**
  * @author surge
@@ -23,13 +24,15 @@ class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>
         val result = RuntimeResult()
         val interpreter = Interpreter()
 
-        result.register(this.checkAndPopulate(arguments, passed, start, end, context))
+        val execContext = generateExecuteContext()
+
+        result.register(this.checkAndPopulate(arguments, passed, start, end, execContext))
 
         if (result.shouldReturn()) {
             return result
         }
 
-        val value = result.register(interpreter.visit(this.body, context))
+        val value = result.register(interpreter.visit(this.body, execContext))
 
         if (result.error != null) {
             return result
@@ -37,7 +40,7 @@ class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>
 
         val returnValue = (if (expression) value else null) ?: (result.returnValue ?: NullValue().positioned(start, end)).givenContext(context)
 
-        if (returnValue !is NullValue && returnType != null && (!PrimitiveValue.check(returnValue, returnType) || returnValue.type != returnType.type)) {
+        if (returnValue !is NullValue && returnType != null && !(PrimitiveValue.check(returnValue, returnType) || returnValue.type == returnType.type)) {
             return result.failure(TypeMismatchError(
                 "Returned value did not conform to type '${returnType.type}' (got '${returnValue.type}')",
                 returnValue.start,

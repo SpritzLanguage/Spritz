@@ -9,6 +9,7 @@ import spritz.util.RequiredArgument
 import spritz.value.Value
 import spritz.value.table.Symbol
 import spritz.value.table.Table
+import spritz.value.table.TableAccessor
 import spritz.value.task.TaskValue
 
 /**
@@ -46,7 +47,10 @@ class DefinedContainerValue(identifier: String, val constructor: List<RequiredAr
         table.symbols.addAll(instanceContext.table.symbols)
         val instance = InstanceValue(this, table)
 
-        instance.table.set(Symbol("this", instance, this.start, this.end).setImmutability(true), context, true)
+        TableAccessor(instance.table)
+            .identifier("this")
+            .immutable(true)
+            .set(instance, forced = true, data = Table.Data(this.start, this.end, context))
 
         return result.success(instance.positioned(start, end).givenContext(instanceContext))
     }

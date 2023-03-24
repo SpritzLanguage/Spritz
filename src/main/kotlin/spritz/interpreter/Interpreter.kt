@@ -11,6 +11,7 @@ import spritz.parser.nodes.*
 import spritz.parser.nodes.condition.ConditionNode
 import spritz.util.RequiredArgument
 import spritz.value.NullValue
+import spritz.value.PrimitiveValue
 import spritz.value.Value
 import spritz.value.bool.BooleanValue
 import spritz.value.container.DefinedContainerValue
@@ -20,7 +21,7 @@ import spritz.value.number.*
 import spritz.value.string.StringValue
 import spritz.value.table.Symbol
 import spritz.value.table.Table
-import spritz.value.table.TableFinder
+import spritz.value.table.TableAccessor
 import spritz.value.task.DefinedTaskValue
 import spritz.value.task.JvmTaskValue
 
@@ -120,7 +121,11 @@ class Interpreter {
             GREATER_THAN_OR_EQUAL_TO -> left.greaterThanOrEqualTo(right, node.operator)
 
             else -> {
-                Value.delegateToIllegal(left, right, node.operator)
+                if (node.operator.matches("is")) {
+                    Pair(BooleanValue(PrimitiveValue.check(left, right) || left.type == right.type), null)
+                } else {
+                    Value.delegateToIllegal(left, right, node.operator)
+                }
             }
         }
 
@@ -266,15 +271,13 @@ class Interpreter {
 
         value!!
 
-        val set = context.table.set(
-            Symbol(
-                name,
-
-                when (node.modifier.type) {
+        val set = TableAccessor(childContext.table)
+            .identifier(name)
+            .set(when (node.modifier.type) {
                     ASSIGNMENT -> value
 
                     INCREMENT -> {
-                        val get = TableFinder(context.table)
+                        val get = TableAccessor(context.table)
                             .identifier(name)
                             .find(node.name.start, node.name.end, context)
 
@@ -292,7 +295,7 @@ class Interpreter {
                     }
 
                     DEINCREMENT -> {
-                        val get = TableFinder(context.table)
+                        val get = TableAccessor(context.table)
                             .identifier(name)
                             .find(node.name.start, node.name.end, context)
 
@@ -310,7 +313,7 @@ class Interpreter {
                     }
 
                     INCREASE_BY -> {
-                        val get = TableFinder(context.table)
+                        val get = TableAccessor(context.table)
                             .identifier(name)
                             .find(node.name.start, node.name.end, context)
 
@@ -328,7 +331,7 @@ class Interpreter {
                     }
 
                     DECREASE_BY -> {
-                        val get = TableFinder(context.table)
+                        val get = TableAccessor(context.table)
                             .identifier(name)
                             .find(node.name.start, node.name.end, context)
 
@@ -346,7 +349,7 @@ class Interpreter {
                     }
 
                     MULTIPLY_BY -> {
-                        val get = TableFinder(context.table)
+                        val get = TableAccessor(context.table)
                             .identifier(name)
                             .find(node.name.start, node.name.end, context)
 
@@ -364,7 +367,7 @@ class Interpreter {
                     }
 
                     DIVIDE_BY -> {
-                        val get = TableFinder(context.table)
+                        val get = TableAccessor(context.table)
                             .identifier(name)
                             .find(node.name.start, node.name.end, context)
 
@@ -382,7 +385,7 @@ class Interpreter {
                     }
 
                     MODULO_BY -> {
-                        val get = TableFinder(context.table)
+                        val get = TableAccessor(context.table)
                             .identifier(name)
                             .find(node.name.start, node.name.end, context)
 
@@ -407,16 +410,7 @@ class Interpreter {
                             context
                         ))
                     }
-                },
-
-                node.start,
-                node.end,
-            ),
-
-            context,
-            declaration = node.declaration,
-            forced = node.forced
-        )
+                }, declaration = node.declaration, forced = node.forced, Table.Data(node.start, node.end, childContext))
 
         if (set.error != null) {
             return result.failure(set.error)
@@ -428,9 +422,9 @@ class Interpreter {
     private fun access(node: AccessNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
-        var reference = TableFinder(childContext.table)
+        var reference = TableAccessor(childContext.table)
             .identifier(node.identifier.value.toString())
-            .filter { node.predicate(it as Value) }
+            .predicate { node.predicate(it as Value) }
             .top(context != childContext)
             .find(node.identifier.start, node.identifier.end, childContext).also {
                 if (it.error != null) {
@@ -484,7 +478,11 @@ class Interpreter {
             .positioned(node.start, node.end)
             .givenContext(context) as DefinedTaskValue
 
-        val set = context.table.set(Symbol(name, task, node.start, node.end).setImmutability(true), context, declaration = true)
+        val set = TableAccessor(context.table)
+            .identifier(name)
+            .immutable(true)
+            .predicate { it is DefinedTaskValue && it.arguments.size == arguments.size }
+            .set(task, declaration = true, data = Table.Data(node.start, node.end, context))
 
         if (set.error != null) {
             return result.failure(set.error)
@@ -516,7 +514,10 @@ class Interpreter {
 
         val container = DefinedContainerValue(name, constructor, node.body).positioned(node.start, node.end).givenContext(context)
 
-        val set = context.table.set(Symbol(name, container, node.start, node.end).setImmutability(true), context, declaration = true)
+        val set = TableAccessor(context.table)
+            .identifier(name)
+            .immutable(true)
+            .set(container, declaration = true, data = Table.Data(node.start, node.end, context))
 
         if (set.error != null) {
             return result.failure(set.error)
@@ -621,7 +622,10 @@ class Interpreter {
         val elements = mutableListOf<Value>()
 
         for (i in list.elements) {
-            scope.table.set(Symbol(node.identifier.value.toString(), i, node.identifier.start, node.identifier.end).setImmutability(true), context, declaration = true, forced = true)
+            TableAccessor(scope.table)
+                .identifier(node.identifier.value.toString())
+                .immutable(true)
+                .set(i, declaration = true, forced = true, data = Table.Data(node.identifier.start, node.identifier.end, context))
 
             val body = result.register(this.visit(node.body, scope))
 

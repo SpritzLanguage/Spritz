@@ -4,7 +4,7 @@ package spritz.value
  * @author surge
  * @since 18/03/2023
  */
-class PrimitiveValue(identifier: String, val test: (Value) -> Boolean) : Value(identifier) {
+class PrimitiveValue(identifier: String, val test: (Value, Value) -> Boolean) : Value(identifier) {
 
     init {
         add(this)
@@ -27,11 +27,11 @@ class PrimitiveValue(identifier: String, val test: (Value) -> Boolean) : Value(i
                 return true
             }
 
-            if (value.type != required.type) {
+            if (required !is PrimitiveValue && value.type != required.type) {
                 return false
             }
 
-            return primitives.any { it.test(value) }
+            return primitives.any { it.test(value, required) }
         }
 
     }

@@ -1,13 +1,22 @@
-container ReprTest(a: int) {
+container Test {
 
-    task<string> repr {
-        return "test" + a
-    }
+    task<number> add(a: number, b: number) = a + b
+    task<number> add(a: number, b: number, c: number) = a + b + c
+
+    task<boolean> match(a: boolean, b: boolean) = a && b
 
 }
 
-task<int> main {
-    std::println(ReprTest(5))
+container Other
 
-    return 0
+task<boolean> isinstance(value: any, cont: container) = value is cont
+
+task<int> main {
+    const a = Test()
+
+    std::println(a::add(2.5, 2, 1))
+    std::println(a::match(true, false))
+
+    std::println(isinstance(a, Test))
+    std::println(isinstance(a, Other))
 }

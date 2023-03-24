@@ -1,6 +1,7 @@
 package spritz.builtin
 
 import spritz.api.annotations.Identifier
+import spritz.util.NUMBERS
 import spritz.value.PrimitiveValue
 import spritz.value.bool.BooleanValue
 import spritz.value.container.DefinedContainerValue
@@ -30,14 +31,15 @@ object Global {
     @JvmField val NULL = null
 
     // primitive types
-    @JvmField val int = PrimitiveValue("int") { it is IntValue }
-    @JvmField val float = PrimitiveValue("float") { it is FloatValue }
-    @JvmField val number = PrimitiveValue("number") { it is NumberValue<*> }
-    @JvmField val boolean = PrimitiveValue("boolean") { it is BooleanValue }
-    @JvmField val string = PrimitiveValue("string") { it is StringValue }
-    @JvmField val task = PrimitiveValue("task") { it is TaskValue }
-    @JvmField val list = PrimitiveValue("list") { it is ListValue }
-    @JvmField val container = PrimitiveValue("container") { it is DefinedContainerValue || it is JvmContainerValue }
-    @JvmField val instance = PrimitiveValue("instance") { it is InstanceValue || it is JvmInstanceValue }
+    @JvmField val any = PrimitiveValue("any") { _, required -> required.type == "any" }
+    @JvmField val int = PrimitiveValue("int") { given, required -> given is IntValue && required.type == "int" }
+    @JvmField val float = PrimitiveValue("float") { given, required -> given is FloatValue && required.type == "float" }
+    @JvmField val number = PrimitiveValue("number") { given, required -> given is NumberValue<*> && required.type in NUMBERS }
+    @JvmField val boolean = PrimitiveValue("boolean") { given, required -> given is BooleanValue && required.type == "boolean" }
+    @JvmField val string = PrimitiveValue("string") { given, required -> given is StringValue && required.type == "string" }
+    @JvmField val task = PrimitiveValue("task") { given, required -> given is TaskValue && required.type == "task" }
+    @JvmField val list = PrimitiveValue("list") { given, required -> given is ListValue && required.type == "list" }
+    @JvmField val container = PrimitiveValue("container") { given, required -> (given is DefinedContainerValue || given is JvmContainerValue) && required.type == "container" }
+    @JvmField val instance = PrimitiveValue("instance") { given, required -> (given is InstanceValue || given is JvmInstanceValue) && required.type == "instance" }
 
 }
