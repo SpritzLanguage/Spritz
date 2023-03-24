@@ -20,7 +20,9 @@ import spritz.value.number.*
 import spritz.value.string.StringValue
 import spritz.value.table.Symbol
 import spritz.value.table.Table
+import spritz.value.table.TableFinder
 import spritz.value.task.DefinedTaskValue
+import spritz.value.task.JvmTaskValue
 
 /**
  * @author surge
@@ -272,7 +274,9 @@ class Interpreter {
                     ASSIGNMENT -> value
 
                     INCREMENT -> {
-                        val get = context.table.get(name, node.name.start, node.name.end, context)
+                        val get = TableFinder(context.table)
+                            .identifier(name)
+                            .find(node.name.start, node.name.end, context)
 
                         if (get.error != null) {
                             return result.failure(get.error)
@@ -288,7 +292,9 @@ class Interpreter {
                     }
 
                     DEINCREMENT -> {
-                        val get = context.table.get(name, node.name.start, node.name.end, context)
+                        val get = TableFinder(context.table)
+                            .identifier(name)
+                            .find(node.name.start, node.name.end, context)
 
                         if (get.error != null) {
                             return result.failure(get.error)
@@ -304,7 +310,9 @@ class Interpreter {
                     }
 
                     INCREASE_BY -> {
-                        val get = context.table.get(name, node.name.start, node.name.end, context)
+                        val get = TableFinder(context.table)
+                            .identifier(name)
+                            .find(node.name.start, node.name.end, context)
 
                         if (get.error != null) {
                             return result.failure(get.error)
@@ -320,7 +328,9 @@ class Interpreter {
                     }
 
                     DECREASE_BY -> {
-                        val get = context.table.get(name, node.name.start, node.name.end, context)
+                        val get = TableFinder(context.table)
+                            .identifier(name)
+                            .find(node.name.start, node.name.end, context)
 
                         if (get.error != null) {
                             return result.failure(get.error)
@@ -336,7 +346,9 @@ class Interpreter {
                     }
 
                     MULTIPLY_BY -> {
-                        val get = context.table.get(name, node.name.start, node.name.end, context)
+                        val get = TableFinder(context.table)
+                            .identifier(name)
+                            .find(node.name.start, node.name.end, context)
 
                         if (get.error != null) {
                             return result.failure(get.error)
@@ -352,7 +364,9 @@ class Interpreter {
                     }
 
                     DIVIDE_BY -> {
-                        val get = context.table.get(name, node.name.start, node.name.end, context)
+                        val get = TableFinder(context.table)
+                            .identifier(name)
+                            .find(node.name.start, node.name.end, context)
 
                         if (get.error != null) {
                             return result.failure(get.error)
@@ -368,7 +382,9 @@ class Interpreter {
                     }
 
                     MODULO_BY -> {
-                        val get = context.table.get(name, node.name.start, node.name.end, context)
+                        val get = TableFinder(context.table)
+                            .identifier(name)
+                            .find(node.name.start, node.name.end, context)
 
                         if (get.error != null) {
                             return result.failure(get.error)
@@ -412,15 +428,15 @@ class Interpreter {
     private fun access(node: AccessNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
-        var reference: Value = run {
-            val get = childContext.table.get(node.identifier.value.toString(), node.identifier.start, node.identifier.end, childContext, context != childContext)
-
-            if (get.error != null) {
-                return result.failure(get.error)
-            }
-
-            get.value!!
-        }
+        var reference = TableFinder(childContext.table)
+            .identifier(node.identifier.value.toString())
+            .filter { node.predicate(it as Value) }
+            .top(context != childContext)
+            .find(node.identifier.start, node.identifier.end, childContext).also {
+                if (it.error != null) {
+                    return result.failure(it.error)
+                }
+            }.value!!
 
         // although this is still executed when a CallNode is invoked, it will be overridden by the returned value
         val child = result.register(child(node, reference, context))
@@ -524,7 +540,15 @@ class Interpreter {
             passedArguments.add(value!!)
         }
 
-        val target = result.register(this.visit(node.target, childContext))
+        val target = result.register(this.visit((node.target as AccessNode).setPredicate {
+            if (it is DefinedTaskValue) {
+                it.arguments.size == passedArguments.size
+            } else if (it is JvmTaskValue) {
+                it.arguments.size == passedArguments.size
+            } else {
+                true
+            }
+        }, childContext))
 
         if (result.shouldReturn()) {
             return result

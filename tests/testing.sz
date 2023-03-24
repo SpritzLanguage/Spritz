@@ -8,5 +8,6 @@ container ReprTest(a: int) {
 
 task<int> main {
     std::println(ReprTest(5))
+
     return 0
 }

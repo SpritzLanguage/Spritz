@@ -13,33 +13,10 @@ import spritz.value.table.result.Result
  */
 class Table(val parent: Table? = null) {
 
-    private var getOverride: (Table.(String, Position, Position, Context) -> Result)? = null
-    private var setOverride: (Table.(Symbol) -> Result)? = null
+    var getOverride: (Table.(String?, (Value?) -> Boolean, Boolean, Data) -> Result)? = null
+    var setOverride: (Table.(Symbol) -> Result)? = null
 
     val symbols = mutableListOf<Symbol>()
-
-    fun get(identifier: String, start: Position, end: Position, context: Context, top: Boolean = false): Result {
-        if (getOverride != null) {
-            return this.getOverride!!(identifier, start, end, context)
-        }
-
-        val existing = symbols.firstOrNull { it.name == identifier }
-
-        if (existing != null) {
-            return Result(existing.value, null)
-        }
-
-        if (parent != null && !top) {
-            return parent.get(identifier, start, end, context)
-        }
-
-        return Result(null, UndefinedReferenceError(
-            "'${identifier}' was not found",
-            start,
-            end,
-            context
-        ))
-    }
 
     fun set(symbol: Symbol, context: Context, declaration: Boolean = true, forced: Boolean = false): Result {
         if (setOverride != null) {
@@ -88,11 +65,7 @@ class Table(val parent: Table? = null) {
         )
     }
 
-    fun find(identifier: String, predicate: (Symbol) -> Boolean): Value? {
-        return symbols.firstOrNull { predicate(it) }?.value
-    }
-
-    fun setGet(get: (Table.(String, Position, Position, Context) -> Result)): Table {
+    fun setGet(get: (Table.(String?, (Value?) -> Boolean, Boolean, Data) -> Result)): Table {
         this.getOverride = get
 
         return this
@@ -103,5 +76,7 @@ class Table(val parent: Table? = null) {
 
         return this
     }
+
+    data class Data(val start: Position, val end: Position, val context: Context)
 
 }

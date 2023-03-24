@@ -82,9 +82,9 @@ class SpritzEnvironment(val config: Config = Config()) {
         return this
     }
 
-    fun get(identifier: String): Value? {
+    /*fun get(identifier: String): Value? {
         return global.get(identifier, LinkPosition(), LinkPosition(), origin).value
-    }
+    }*/
 
     fun setWarningHandler(handler: (Warning) -> Unit): SpritzEnvironment {
         warningHandler = handler

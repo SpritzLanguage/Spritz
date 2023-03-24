@@ -15,7 +15,7 @@ import java.lang.reflect.Field
 class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleName) {
 
     init {
-        this.table.setGet {identifier, start, end, context ->
+        /*this.table.setGet {identifier, start, end, context ->
             try {
                 var field: Any? = instance::class.java.declaredFields.filter { !it.isAnnotationPresent(Excluded::class.java) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
 
@@ -43,6 +43,38 @@ class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleNam
                     start,
                     end,
                     context
+                ))
+            }
+        }*/
+
+        this.table.setGet { identifier, predicate, top, data ->
+            try {
+                var field: Any? = instance::class.java.declaredFields.filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it.get(instance))) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
+
+                if (field == null) {
+                    field = instance::class.java.declaredMethods.filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it)) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
+                }
+
+                if (field == null) {
+                    field = instance::class.java.declaredClasses.filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it)) }.firstOrNull { it.name == identifier }
+                }
+
+                if (field == null) {
+                    return@setGet Result(null, JvmError(
+                        "'$identifier' is not present in ${instance::class.java.simpleName}",
+                        data.start,
+                        data.end,
+                        data.context
+                    ))
+                }
+
+                return@setGet Result(Coercion.IntoSpritz.coerce(field, instance).positioned(data.start, data.end).givenContext(data.context), null)
+            } catch (exception: Exception) {
+                return@setGet Result(null, JvmError(
+                    exception.message!!,
+                    data.start,
+                    data.end,
+                    data.context
                 ))
             }
         }

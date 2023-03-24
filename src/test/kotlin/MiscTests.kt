@@ -1,6 +1,7 @@
 import spritz.SpritzEnvironment
 import spritz.builtin.Global
 import spritz.builtin.Standard
+import spritz.value.table.TableFinder
 import spritz.value.task.DefinedTaskValue
 import java.io.File
 import java.nio.charset.Charset
@@ -23,12 +24,23 @@ object MiscTests {
 
         spritzEnvironment.evaluate("testing", File("testing.sz").readText(Charset.defaultCharset()))
 
-        val main = spritzEnvironment.get("main") as DefinedTaskValue
+        /* val main = spritzEnvironment.get("main") as DefinedTaskValue
         val result = main.execute(arrayListOf())
 
         if (result.error != null) {
             println(result.error)
-        }
+        } */
+
+        val main = TableFinder(spritzEnvironment.global)
+            .identifier("main")
+            .filter { it is DefinedTaskValue && it.arguments.isEmpty() }
+            .find().value?.execute(arrayListOf())?.also {
+                if (it.error != null) {
+                    println(it.error)
+                }
+            } ?: run {
+                println("`main` function not found")
+            }
     }
 
 }

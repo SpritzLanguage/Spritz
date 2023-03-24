@@ -13,6 +13,7 @@ import spritz.lexer.token.Token
 import spritz.value.bool.BooleanValue
 import spritz.value.string.StringValue
 import spritz.value.table.Table
+import spritz.value.table.TableFinder
 import spritz.value.task.DefinedTaskValue
 
 /**
@@ -66,7 +67,10 @@ abstract class Value(val type: String, val identifier: String = type) : Cloneabl
     }
 
     override fun toString(): String {
-        return this.table.find("repr") { it.value is DefinedTaskValue }?.execute(arrayListOf())?.value?.toString() ?: ""
+        return TableFinder(this.table)
+            .identifier("repr")
+            .filter { it is DefinedTaskValue && it.returnType == Global.string && it.arguments.isEmpty() }
+            .find(this.start, this.end, this.context).value?.execute(arrayListOf())?.value?.toString() ?: ""
     }
 
     fun positioned(start: Position, end: Position): Value {
