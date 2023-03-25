@@ -26,6 +26,18 @@ task main
 ```
 
 ## Tasks
+### Syntax
+```
+task [return type] [name] [arguments] {
+    [body]
+}
+```
+
+If you are specifying a return type, it should be encased inside `<>`:
+```
+task<int> a = 2 + 2
+```
+
 A task with no parameters should not use `()`.
 ```
 task example {
@@ -34,6 +46,8 @@ task example {
 ```
 
 If a task only performs and returns an expression, it should be considered an `expression` task.
+
+An anonymous function can be created by omitting the name.
 
 ### Correct
 ```
@@ -93,4 +107,32 @@ const a = { "member1": 2, "member2": 3, "member3": 4 }
 const b = {
     "member1": 2
 }
+```
+
+## Try-Catch statements
+A Try-Catch statement where nothing happens on an exception should omit the `catch` statement, as per the following:
+
+### Correct
+```
+try {
+    const a = 2
+    const b = "2"
+    
+    std::println(a + b)
+}
+
+try -> std::println(2 + "2")
+```
+
+### Incorrect
+```
+try {
+    const a = 2
+    const b = "2"
+    
+    std::println(a + b)
+} catch exception {}
+
+try -> std::println(2 + "2")
+catch exception {}
 ```

@@ -6,6 +6,7 @@ import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
 import spritz.parser.node.Node
+import spritz.util.ANONYMOUS
 import spritz.util.RequiredArgument
 import spritz.value.NullValue
 import spritz.value.PrimitiveValue
@@ -24,7 +25,7 @@ class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>
         val result = RuntimeResult()
         val interpreter = Interpreter()
 
-        val execContext = generateExecuteContext()
+        val execContext = if (identifier == ANONYMOUS) context else generateExecuteContext()
 
         result.register(this.checkAndPopulate(arguments, passed, start, end, execContext))
 

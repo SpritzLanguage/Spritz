@@ -14,6 +14,10 @@ import spritz.value.string.StringValue
  */
 class ListCompanion(@Excluded val list: ListValue) {
 
+    fun add(value: Value) {
+        this.list.elements.add(value)
+    }
+
     fun get(index: Int): Value {
         return list.elements[index]
     }

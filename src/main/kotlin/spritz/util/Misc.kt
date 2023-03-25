@@ -5,6 +5,7 @@ import spritz.lexer.token.TokenType
 import spritz.lexer.token.TokenType.*
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 /**
  * @author surge
@@ -22,6 +23,38 @@ operator fun String.times(amount: Int): String {
 
 fun Field.coercedName(): String = this.getAnnotation(Identifier::class.java)?.identifier ?: this.name
 fun Method.coercedName(): String = this.getAnnotation(Identifier::class.java)?.identifier ?: this.name
+
+fun Class<*>.getAllFields(): List<Field> {
+    val fields = mutableListOf<Field>()
+
+    this.declaredFields.forEach {
+        it.isAccessible = true
+
+        fields.add(it)
+    }
+
+    if (this.superclass != null) {
+        fields.addAll(this.superclass.getAllFields())
+    }
+
+    return fields
+}
+
+fun Class<*>.getAllMethods(): List<Method> {
+    val methods = mutableListOf<Method>()
+
+    this.declaredMethods.forEach {
+        it.isAccessible = true
+
+        methods.add(it)
+    }
+
+    if (this.superclass != null) {
+        methods.addAll(this.superclass.getAllMethods())
+    }
+
+    return methods
+}
 
 val KEYWORDS = hashMapOf(
     // declaration keywords
@@ -41,7 +74,11 @@ val KEYWORDS = hashMapOf(
     "conditional_default" to "else",
     "return" to "return",
     "continue" to "continue",
-    "break" to "break"
+    "break" to "break",
+
+    // try catch
+    "try" to "try",
+    "catch" to "catch"
 )
 
 val NUMBERS = listOf(

@@ -72,6 +72,9 @@ Gets a list of `string` instances, with each element being a character in the cu
 ### `<list> split(delimiter)`
 Splits the string by the delimiter and returns it as a list
 
+### `<list> after(index: int)`
+Gets a list of characters after the given index (inclusive).
+
 ### `<int> int()`
 Converts the string to an integer value.
 
@@ -85,6 +88,9 @@ Converts the string to a byte value.
 Converts the string to a boolean value.
 
 ### List
+### `add(value: any)`
+Adds the given `value` to the list.
+
 ### `<any> get(index: int)`
 Gets the element at the given `index`.
 
@@ -107,6 +113,9 @@ Gets a list of elements after the given index (inclusive).
 Returns a string that represents the concatenated list values, with the element being formatted by `format`, with `%` representing the item.
 
 ### Dictionary
+### `set(key: string, value: any)`
+Sets the element mapped to the given `key` to `value`.
+
 ### `<any> get(key: string)`
 Gets the element mapped to the given `key`, or `null`, if it wasn't found.
 

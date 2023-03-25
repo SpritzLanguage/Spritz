@@ -627,14 +627,14 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             return result.success(`while` as Node)
         }
 
-        if (token.matches("external")) {
-            val external = result.register(this.external())
+        if (token.matches("try")) {
+            val `try` = result.register(this.`try`())
 
             if (result.error != null) {
                 return result
             }
 
-            return result.success(external as Node)
+            return result.success(`try` as Node)
         }
 
         return result.failure(ParsingError(
@@ -1058,33 +1058,88 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         ))
     }
 
-    private fun external(): ParseResult {
+    private fun `try`(): ParseResult {
         val result = ParseResult()
         val start = this.currentToken.start
 
         advanceRegister(result)
 
-        if (this.currentToken.type != STRING) {
-            return result.failure(ParsingError(
-                "Expected string",
-                this.currentToken.start,
+        if (this.currentToken.type == ARROW) {
+            advanceRegister(result)
+
+            val body = result.register(this.expression())
+
+            if (result.error != null) {
+                return result
+            }
+
+            var catchNode: Node? = null
+
+            if (this.currentToken.matches("catch")) {
+                catchNode = result.register(this.catch())
+
+                if (result.error != null) {
+                    return result
+                }
+            }
+
+            return result.success(TryNode(
+                body!!,
+                catchNode as CatchNode?,
+                start,
                 this.currentToken.end
             ))
         }
 
-        val path = this.currentToken
-
-        val end = this.currentToken.end.clone()
+        if (this.currentToken.type != OPEN_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '{' or '='",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
 
         advanceRegister(result)
 
-        if (!this.currentToken.matches("as")) {
+        val body = result.register(this.statements())
+
+        if (result.error != null) {
+            return result
+        }
+
+        body as Node
+
+        if (this.currentToken.type != CLOSE_BRACE) {
             return result.failure(ParsingError(
-                "Expected 'as'",
+                "Expected '}'",
                 this.currentToken.start,
-                this.currentToken.end
+                this.currentToken.end,
             ))
         }
+
+        advanceRegister(result)
+
+        var catchNode: Node? = null
+
+        if (this.currentToken.matches("catch")) {
+            catchNode = result.register(this.catch())
+
+            if (result.error != null) {
+                return result
+            }
+        }
+
+        return result.success(TryNode(
+            body,
+            catchNode as CatchNode?,
+            start,
+            this.currentToken.end
+        ))
+    }
+
+    private fun `catch`(): ParseResult {
+        val result = ParseResult()
+        val start = this.currentToken.start
 
         advanceRegister(result)
 
@@ -1096,11 +1151,61 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             ))
         }
 
-        val identifier = this.currentToken
+        val exception = this.currentToken.value.toString()
 
         advanceRegister(result)
 
-        return result.success(ExternalNode(path, identifier, this.config, start, end))
+        if (this.currentToken.type == ARROW) {
+            advanceRegister(result)
+
+            val body = result.register(this.expression())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(CatchNode(
+                exception,
+                body!!,
+                start,
+                this.currentToken.end
+            ))
+        }
+
+        if (this.currentToken.type != OPEN_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '{' or '='",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        val body = result.register(this.statements())
+
+        if (result.error != null) {
+            return result
+        }
+
+        body as Node
+
+        if (this.currentToken.type != CLOSE_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '}'",
+                this.currentToken.start,
+                this.currentToken.end,
+            ))
+        }
+
+        advanceRegister(result)
+
+        return result.success(CatchNode(
+            exception,
+            body,
+            start,
+            this.currentToken.end
+        ))
     }
 
     private fun conditional(): ParseResult {

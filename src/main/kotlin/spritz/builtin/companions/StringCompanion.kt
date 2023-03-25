@@ -2,6 +2,7 @@ package spritz.builtin.companions
 
 import spritz.api.annotations.Excluded
 import spritz.api.annotations.Identifier
+import spritz.value.Value
 import spritz.value.list.ListValue
 import spritz.value.string.StringValue
 
@@ -44,6 +45,16 @@ class StringCompanion(@Excluded val string: StringValue) {
 
     fun split(delimiter: String): List<String> {
         return string.value.split(delimiter)
+    }
+
+    fun after(index: Int): String {
+        var result = ""
+
+        for (i in index until this.string.value.length) {
+            result += this.string.value[i]
+        }
+
+        return result
     }
 
     fun int(): Int {

@@ -101,6 +101,13 @@ object Coercion {
                             data.end,
                             data.context
                         ))
+                    } catch (exception: IllegalArgumentException) {
+                        RuntimeResult().failure(JvmError(
+                            "JVM Exception occurred: '${exception}'",
+                            data.start,
+                            data.end,
+                            data.context
+                        ))
                     }
                 },
 
@@ -140,6 +147,10 @@ object Coercion {
 
             Boolean::class.java -> {
                 return BooleanValue::class.java
+            }
+
+            else -> {
+                return JvmInstanceValue::class.java
             }
         }
 

@@ -1,13 +1,21 @@
-class Command(name, arguments, execute)
+class Command(name: string, arguments: list, execute: task)
 
 task<int> main {
+    const variables = {}
+
     const commands = [
         Command("quit", ["status"], task (args) {
-            std::exit_process(args::get(0)::int())
+            try -> std::exit_process(args::get(0)::int())
+            catch exception -> std::println("Failed to execute 'quit': " + exception::details)
         }),
 
         Command("echo", null, task (args) {
             std::println(args::join(" ", "%"))
+        }),
+
+        Command("store", ["identifier", "value"], task (args) {
+            variables::set(args::get(0), args::get(1))
+            std::println("Set variable " + args::get(0) + " to " + args::get(1))
         })
     ]
 
@@ -18,7 +26,20 @@ task<int> main {
             continue
         }
 
-        const arguments = input::after(1)
+        mut arguments = input::after(1)
+
+        const new = []
+
+        for (argument : arguments) {
+            if (argument::char_at(0) == "$") {
+                try -> new::add(variables::get(argument::after(1)))
+                catch exception -> std::println("Couldn't find variable '" + argument::after(1) + "'")
+            } else {
+                new::add(argument)
+            }
+        }
+
+        arguments = new
 
         mut found = false
 

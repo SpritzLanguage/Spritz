@@ -1,5 +1,6 @@
 package spritz.error
 
+import spritz.api.annotations.Excluded
 import spritz.lexer.position.LinkPosition
 import spritz.lexer.position.Position
 import spritz.util.times
@@ -37,6 +38,7 @@ open class Error(val name: String, val details: String, val start: Position, val
         return result
     }
 
+    @Excluded
     private fun countLeadingWhitespace(str: String): Int {
         var count = 0
 

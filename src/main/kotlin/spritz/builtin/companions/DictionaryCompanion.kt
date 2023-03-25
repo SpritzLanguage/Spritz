@@ -12,6 +12,10 @@ import spritz.value.string.StringValue
  */
 class DictionaryCompanion(@Excluded val dictionary: DictionaryValue) {
 
+    fun set(key: StringValue, value: Value) {
+        this.dictionary.elements[key.value] = value
+    }
+
     fun get(key: StringValue): Value {
         return dictionary.elements[key.value] ?: NullValue()
     }

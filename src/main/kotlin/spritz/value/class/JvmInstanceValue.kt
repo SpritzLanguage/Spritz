@@ -4,6 +4,8 @@ import spritz.api.Coercion
 import spritz.api.annotations.Excluded
 import spritz.error.interpreting.JvmError
 import spritz.util.coercedName
+import spritz.util.getAllFields
+import spritz.util.getAllMethods
 import spritz.value.Value
 import spritz.value.table.result.Result
 import java.lang.reflect.Field
@@ -47,12 +49,12 @@ class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleNam
             }
         }*/
 
-        this.table.setGet { identifier, predicate, top, data ->
+        this.table.setGet { identifier, predicate, _, data ->
             try {
-                var field: Any? = instance::class.java.declaredFields.filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it.get(instance))) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
+                var field: Any? = instance::class.java.getAllFields().filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it.get(instance))) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
 
                 if (field == null) {
-                    field = instance::class.java.declaredMethods.filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it)) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
+                    field = instance::class.java.getAllMethods().filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it)) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
                 }
 
                 if (field == null) {

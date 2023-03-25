@@ -1,0 +1,10 @@
+task<int> main {
+    try {
+        std::println(2 + "t")
+    } catch e {
+        std::println(e::name)
+    }
+
+    try -> 2 + "t"
+    catch exception -> std::println("Error occurred!")
+}

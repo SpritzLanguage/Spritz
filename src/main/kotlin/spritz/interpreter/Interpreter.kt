@@ -1,5 +1,6 @@
 package spritz.interpreter
 
+import spritz.api.Coercion
 import spritz.error.Error
 import spritz.error.interpreting.IllegalOperationError
 import spritz.error.interpreting.NodeIntepreterNotFoundError
@@ -55,7 +56,11 @@ class Interpreter {
         WhileNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `while`(node as WhileNode, parentContext, childContext) },
         ReturnNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callReturn(node as ReturnNode, parentContext, childContext) },
         ContinueNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callContinue(node as ContinueNode, parentContext, childContext) },
-        BreakNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callBreak(node as BreakNode, parentContext, childContext) }
+        BreakNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callBreak(node as BreakNode, parentContext, childContext) },
+
+        // try catch
+        TryNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `try`(node as TryNode, parentContext, childContext) },
+        CatchNode::class.java to { node: Node, parentContext: Context, childContext: Context -> catch(node as CatchNode, parentContext, childContext) },
     )
 
     /**
@@ -710,6 +715,51 @@ class Interpreter {
         }
 
         return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(scope))
+    }
+
+    private fun `try`(node: TryNode, context: Context, childContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val scope = Context("scope", parent = context).givenTable(Table(context.table))
+
+        val scopeResult = RuntimeResult()
+
+        val value: Value? = scopeResult.register(this.visit(node.body, scope))
+
+        if (scopeResult.error != null) {
+            if (node.catch != null) {
+                val scope = Context("scope", parent = context).givenTable(Table(context.table))
+
+                TableAccessor(scope.table)
+                    .identifier(node.catch.exception)
+                    .immutable(true)
+                    .set(Coercion.IntoSpritz.coerce(scopeResult.error))
+
+                val catched = scopeResult.register(this.visit(node.catch, scope))
+
+                if (scopeResult.error != null) {
+                    return result.failure(scopeResult.error!!)
+                }
+
+                return result.success(catched)
+            }
+
+            return result.success(NullValue())
+        }
+
+        return result.success(value!!)
+    }
+
+    private fun `catch`(node: CatchNode, context: Context, childContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val value = result.register(this.visit(node.body, context))
+
+        if (result.error != null) {
+            return result
+        }
+
+        return result.success(value)
     }
 
     private fun condition(node: ConditionNode, context: Context, childContext: Context): RuntimeResult {
