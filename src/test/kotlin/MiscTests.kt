@@ -20,7 +20,7 @@ object MiscTests {
                 println(it)
             }
 
-        spritzEnvironment.evaluate("cli.sz", File("demos/cli.sz").readText(Charset.defaultCharset()))
+        spritzEnvironment.evaluate("lambdas.sz", File("examples/lambdas.sz").readText(Charset.defaultCharset()))
 
         val main = TableAccessor(spritzEnvironment.global)
             .identifier("main")

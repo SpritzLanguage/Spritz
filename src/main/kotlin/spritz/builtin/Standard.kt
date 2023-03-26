@@ -92,7 +92,7 @@ object Standard {
 
     // utility functions
     @Excluded
-    fun format(input: String, formatted: List<Value>): String {
+    private fun format(input: String, formatted: List<Value>): String {
         var result = ""
 
         var formatIndex = 0

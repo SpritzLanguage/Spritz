@@ -95,6 +95,10 @@ Converts the string to a byte value.
 ### `<boolean> boolean()`
 Converts the string to a boolean value.
 
+## Boolean
+### `<int> binary()`
+Returns the binary representation of this boolean.
+
 ## List
 ### `add(value: any)`
 Adds the given `value` to the list.
@@ -140,10 +144,3 @@ The name of this class.
 ## Instance
 ### `<any> get_parent()`
 Gets the parent class of this instance, or `null` if this instance is a JVM instance.
-
-## Task
-### `name`
-The name of this task.
-
-### `return_type`
-Gets the return type of this task, or `null` if it does not have a return type or is a JVM method.

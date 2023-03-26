@@ -1,0 +1,22 @@
+task execute_lambda(
+    l: task // lambdas are considered tasks, and are executed in the same way
+) {
+    l()
+}
+
+task<int> main {
+    const t = 2
+
+    const a = lambda -> {
+        std::println("hello, world!")
+        std::println(t)
+    }
+
+    a()
+
+    execute_lambda(lambda -> {
+        std::println("executed!")
+    })
+
+    return 0
+}
