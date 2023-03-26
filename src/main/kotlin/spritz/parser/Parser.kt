@@ -637,6 +637,16 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             return result.success(`try` as Node)
         }
 
+        if (token.matches("native")) {
+            val native = result.register(this.native())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(native as Node)
+        }
+
         return result.failure(ParsingError(
             "Expected int, float, '+', '-' or '('",
             token.start,
@@ -1203,6 +1213,65 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         return result.success(CatchNode(
             exception,
             body,
+            start,
+            this.currentToken.end
+        ))
+    }
+
+    private fun native(): ParseResult {
+        val result = ParseResult()
+        val start = this.currentToken.start.clone()
+
+        if (!config.natives) {
+            // not sure why...
+            result.registerAdvancement()
+
+            return result.failure(ParsingError(
+                "Natives are disabled!",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != STRING) {
+            return result.failure(ParsingError(
+                "Expected string",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        val clazz = this.currentToken
+
+        advanceRegister(result)
+
+        if (!this.currentToken.matches("as")) {
+            return result.failure(ParsingError(
+                "Expected 'as'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != IDENTIFIER) {
+            return result.failure(ParsingError(
+                "Expected identifier",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        val identifier = this.currentToken
+
+        advanceRegister(result)
+
+        return result.success(NativeNode(
+            clazz,
+            identifier,
             start,
             this.currentToken.end
         ))

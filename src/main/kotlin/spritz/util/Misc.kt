@@ -59,6 +59,16 @@ fun Class<*>.getAllMethods(): List<Method> {
     return methods
 }
 
+inline fun <T> Array<out T>.allIndexed(predicate: (Int, T) -> Boolean): Boolean {
+    this.forEachIndexed { index, element ->
+        if (!predicate(index, element)) {
+            return false
+        }
+    }
+
+    return true
+}
+
 fun Value.success(): Success {
     return Success(this)
 }
@@ -69,6 +79,7 @@ val KEYWORDS = hashMapOf(
     "class" to "class",
     "mutable" to "mut",
     "constant" to "const",
+    "native" to "native",
     "as" to "as",
     "is" to "is",
 

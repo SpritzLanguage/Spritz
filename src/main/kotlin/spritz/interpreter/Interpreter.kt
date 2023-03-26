@@ -3,6 +3,7 @@ package spritz.interpreter
 import spritz.api.Coercion
 import spritz.error.Error
 import spritz.error.interpreting.IllegalOperationError
+import spritz.error.interpreting.JvmError
 import spritz.error.interpreting.NodeIntepreterNotFoundError
 import spritz.error.interpreting.TypeMismatchError
 import spritz.interpreter.context.Context
@@ -17,6 +18,7 @@ import spritz.value.PrimitiveValue
 import spritz.value.Value
 import spritz.value.bool.BooleanValue
 import spritz.value.`class`.DefinedClassValue
+import spritz.value.`class`.JvmClassValue
 import spritz.value.dictionary.DictionaryValue
 import spritz.value.list.ListValue
 import spritz.value.number.*
@@ -61,6 +63,8 @@ class Interpreter {
         // try catch
         TryNode::class.java to { node: Node, parentContext: Context, childContext: Context -> `try`(node as TryNode, parentContext, childContext) },
         CatchNode::class.java to { node: Node, parentContext: Context, childContext: Context -> catch(node as CatchNode, parentContext, childContext) },
+
+        NativeNode::class.java to { node: Node, parentContext: Context, childContext: Context -> native(node as NativeNode, parentContext, childContext) },
     )
 
     /**
@@ -760,6 +764,36 @@ class Interpreter {
         }
 
         return result.success(value)
+    }
+
+    private fun native(node: NativeNode, context: Context, childContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val resolved = runCatching {
+            Class.forName(node.clazz.value.toString())
+        }.getOrNull() ?: return result.failure(JvmError(
+            "Failed to locate '${node.clazz}'",
+            node.start,
+            node.end,
+            context
+        ))
+
+        val name = node.identifier.value.toString()
+
+        val clazz = JvmClassValue(name, resolved)
+            .position(node.start, node.end)
+            .givenContext(context) as JvmClassValue
+
+        val set = TableAccessor(context.table)
+            .identifier(name)
+            .immutable(true)
+            .set(clazz, declaration = true, data = Table.Data(node.start, node.end, context))
+
+        if (set.error != null) {
+            return result.failure(set.error)
+        }
+
+        return result.success(clazz)
     }
 
     private fun condition(node: ConditionNode, context: Context, childContext: Context): RuntimeResult {

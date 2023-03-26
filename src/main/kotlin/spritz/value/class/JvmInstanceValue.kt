@@ -8,6 +8,7 @@ import spritz.util.getAllFields
 import spritz.util.getAllMethods
 import spritz.value.table.result.Result
 import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 /**
  * I am not documenting this.
@@ -20,14 +21,26 @@ class JvmInstanceValue(val instance: Any) : InstanceValue(instance::class.java.s
     init {
         this.table.overrideGet { identifier, predicate, _, data ->
             try {
-                var field: Any? = instance::class.java.getAllFields().filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it.get(instance))) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
+                var field: Any? = instance::class.java.getAllFields().filter {
+                    Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) &&
+                            !it.isAnnotationPresent(Excluded::class.java) &&
+                            predicate(Coercion.IntoSpritz.coerce(it.get(instance)))
+                }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
 
                 if (field == null) {
-                    field = instance::class.java.getAllMethods().filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it)) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
+                    field = instance::class.java.getAllMethods().filter {
+                        Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) &&
+                                !it.isAnnotationPresent(Excluded::class.java) &&
+                                predicate(Coercion.IntoSpritz.coerce(it))
+                    }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
                 }
 
                 if (field == null) {
-                    field = instance::class.java.declaredClasses.filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it)) }.firstOrNull { it.name == identifier }
+                    field = instance::class.java.declaredClasses.filter {
+                        Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) &&
+                                !it.isAnnotationPresent(Excluded::class.java) &&
+                                predicate(Coercion.IntoSpritz.coerce(it))
+                    }.firstOrNull { it.name == identifier }
                 }
 
                 if (field == null) {

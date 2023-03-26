@@ -10,4 +10,13 @@ class ClassTesting(val a: Int) {
         println(a)
     }
 
+    companion object {
+
+        @JvmStatic
+        fun test2() {
+            println("!!!!!!!!!!!!")
+        }
+
+    }
+
 }

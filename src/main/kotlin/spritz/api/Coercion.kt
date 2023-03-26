@@ -49,7 +49,7 @@ object Coercion {
                 is Boolean -> BooleanValue(any)
                 is Number -> coerceNumber(any)
                 is String -> StringValue(any)
-                is Method -> coerceMethod(instance!!, any.coercedName(), any)
+                is Method -> coerceMethod(instance, any.coercedName(), any)
                 is List<*> -> ListValue(any.map { coerce(it) }.toMutableList())
 
                 else -> JvmInstanceValue(any)
@@ -61,7 +61,7 @@ object Coercion {
          * Coerces a method inside the given [instance], with the given [identifier].
          * @return The coerced task value.
          */
-        fun coerceMethod(instance: Any, identifier: String, method: Method): JvmTaskValue {
+        fun coerceMethod(instance: Any?, identifier: String, method: Method): JvmTaskValue {
             val types = method.parameterTypes.filter { it != CallData::class.java }
             val converted = arrayListOf<Class<*>>()
 

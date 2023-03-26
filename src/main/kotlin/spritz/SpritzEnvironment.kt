@@ -18,6 +18,7 @@ import spritz.value.`class`.JvmClassValue
 import spritz.value.table.Table
 import spritz.value.table.TableAccessor
 import spritz.warning.Warning
+import java.lang.reflect.Modifier
 
 /**
  * An environment that contains the global value table, origin context, handlers, etc.
@@ -25,7 +26,7 @@ import spritz.warning.Warning
  * @author surge
  * @since 25/02/2023
  */
-class SpritzEnvironment(val config: Config = Config()) {
+class SpritzEnvironment(val config: Config = Config(natives = false)) {
 
     // bottom of the table hierarchy
     val global = Table()
@@ -162,6 +163,38 @@ class SpritzEnvironment(val config: Config = Config()) {
                     .identifier(it.coercedName())
                     .immutable(true)
                     .set(Coercion.IntoSpritz.coerce(it, instance).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
+            }
+        }
+
+        /**
+         * Loads the static fields and methods of a [clazz] into a given [table].
+         */
+        @JvmStatic
+        fun staticLoad(clazz: Class<*>, table: Table, context: Context) {
+            clazz.declaredFields.forEach {
+                if (it.isAnnotationPresent(Excluded::class.java)) {
+                    return@forEach
+                }
+
+                if (Modifier.isPublic(it.modifiers) && Modifier.isStatic(it.modifiers)) {
+                    TableAccessor(table)
+                    .identifier(it.coercedName())
+                    .immutable(true)
+                    .set(Coercion.IntoSpritz.coerce(it, null).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
+                }
+            }
+
+            clazz.declaredMethods.forEach {
+                if (it.isAnnotationPresent(Excluded::class.java)) {
+                    return@forEach
+                }
+
+                if (Modifier.isPublic(it.modifiers) && Modifier.isStatic(it.modifiers)) {
+                    TableAccessor(table)
+                    .identifier(it.coercedName())
+                    .immutable(true)
+                    .set(Coercion.IntoSpritz.coerce(it, null).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
+                }
             }
         }
 

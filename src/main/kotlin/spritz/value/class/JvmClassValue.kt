@@ -6,6 +6,7 @@ import spritz.error.interpreting.JvmError
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
 import spritz.lexer.position.Position
+import spritz.util.allIndexed
 import spritz.value.Value
 
 /**
@@ -16,6 +17,7 @@ class JvmClassValue(identifier: String, val clazz: Class<*>) : ClassValue(identi
 
     init {
         SpritzEnvironment.putIntoTable(ClassCompanion(this), this.table, Context("companion"))
+        SpritzEnvironment.staticLoad(clazz, this.table, Context("static"))
     }
 
     override fun asJvmValue() = clazz
@@ -23,12 +25,16 @@ class JvmClassValue(identifier: String, val clazz: Class<*>) : ClassValue(identi
     override fun execute(passed: List<Value>, start: Position, end: Position, context: Context): RuntimeResult {
         val constructorArgs = mutableListOf<Any?>()
 
-        // find first constructor with the same parameter size as the passed arguments.
-        val constructor = clazz.constructors.first { it.parameterCount == passed.size }
-
         // convert all passed arguments to their JVM representation.
         passed.forEachIndexed { index, it ->
             constructorArgs.add(it.asJvmValue())
+        }
+
+        // find first constructor with the same parameter size as the passed arguments.
+        val constructor = clazz.constructors.first { constructor ->
+            constructor.parameterCount == passed.size && constructor.parameters.allIndexed { index, parameter ->
+                parameter.type.kotlin.javaObjectType.isAssignableFrom(constructorArgs[index]?.let { it::class.java })
+            }
         }
 
         try {

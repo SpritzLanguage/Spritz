@@ -1,0 +1,12 @@
+native "java.lang.Math" as maths
+native "java.lang.String" as str
+native "jvmlink.ClassTesting" as test
+
+task<int> main {
+    std::println(maths::sin(2))
+
+    const a = str("test")
+    const b = test(3)
+
+    return 0
+}
