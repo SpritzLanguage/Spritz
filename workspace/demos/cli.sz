@@ -4,16 +4,16 @@ task<int> main {
     const variables = {}
 
     const commands = [
-        Command("quit", ["status"], task (args) {
+        Command("quit", ["status"], lambda { args: list ->
             try -> std::exit_process(args::get(0)::int())
             catch exception -> std::printlnf("Failed to execute 'quit': %", exception::details)
         }),
 
-        Command("echo", null, task (args) {
+        Command("echo", null, lambda { args: list ->
             std::println(args::join(" ", "%"))
         }),
 
-        Command("store", ["identifier", "value"], task (args) {
+        Command("store", ["identifier", "value"], lambda { args: list ->
             variables::set(args::get(0), args::get(1))
             std::printlnf("Set variable '%' to '%'", [args::get(0), args::get(1)])
         })

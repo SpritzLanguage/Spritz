@@ -26,7 +26,7 @@ import java.lang.reflect.Modifier
  * @author surge
  * @since 25/02/2023
  */
-class SpritzEnvironment(val config: Config = Config(natives = false)) {
+class SpritzEnvironment(val config: Config = Config()) {
 
     // bottom of the table hierarchy
     val global = Table()

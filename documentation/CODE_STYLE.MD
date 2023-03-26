@@ -47,8 +47,6 @@ task example {
 
 If a task only performs and returns an expression, it should be considered an `expression` task.
 
-An anonymous function can be created by omitting the name.
-
 ### Correct
 ```
 task<int> expression = 2 + 4
@@ -62,6 +60,20 @@ task<int> expression {
 ```
 
 Tasks should follow the `snake_case` name formatting, and not `camelCase` or `PascalCase`.
+
+## Lambdas
+You can create a lambda with the `lambda` keyword. If a lambda has no arguments, an arrow (`->`) should be
+directly before the opening brace.
+
+```
+lambda -> {}
+```
+
+However, if it does have arguments, the arguments should be inside the braces, followed by an arrow.
+
+```
+lambda { a, b: int, c: float -> }
+```
 
 ## Classes
 A class with no parameters should not use `()` and a class with no 

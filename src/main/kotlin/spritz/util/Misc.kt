@@ -76,6 +76,7 @@ fun Value.success(): Success {
 val KEYWORDS = hashMapOf(
     // declaration keywords
     "task" to "task",
+    "lambda" to "lambda",
     "class" to "class",
     "mutable" to "mut",
     "constant" to "const",

@@ -597,6 +597,16 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             return result.success(task as Node)
         }
 
+        if (token.matches("lambda")) {
+            val lambda = result.register(this.lambda())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(lambda as Node)
+        }
+
         if (token.matches("class")) {
             val `class` = result.register(this.`class`())
 
@@ -683,12 +693,17 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             advanceRegister(result)
         }
 
-        var name = ANONYMOUS
-
-        if (this.currentToken.type == IDENTIFIER) {
-            name = this.currentToken.value.toString()
-            advanceRegister(result)
+        if (this.currentToken.type != IDENTIFIER) {
+            return result.failure(ParsingError(
+                "Expected identifier",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
         }
+
+        val name = this.currentToken.value.toString()
+
+        advanceRegister(result)
 
         if (name.any { it.isUpperCase() }) {
             result.warn(Warning("Name should be in snake_case (upper case char detected)", this.currentToken.start.clone()))
@@ -783,6 +798,118 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
 
         return result.success(TaskDefineNode(
             name,
+            false,
+            returnType,
+            arguments,
+            body,
+            start,
+            this.currentToken.end
+        ))
+    }
+
+    private fun lambda(): ParseResult {
+        val result = ParseResult()
+
+        val start = this.currentToken.start
+
+        advanceRegister(result)
+
+        var returnType: Node? = null
+
+        if (this.currentToken.type == ARROW_LEFT) {
+            advanceRegister(result)
+
+            returnType = result.register(this.call(child = true, type = true))
+
+            if (result.error != null) {
+                return result
+            }
+
+            if (this.currentToken.type != ARROW_RIGHT) {
+                return result.failure(ParsingError(
+                    "Expected '>'",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
+            }
+
+            advanceRegister(result)
+        }
+
+        var args = true
+
+        if (this.currentToken.type == ARROW) {
+            args = false
+            advanceRegister(result)
+        }
+
+        if (this.currentToken.type != OPEN_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '{'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        val arguments = mutableListOf<Argument>()
+
+        if (args) {
+            while (this.currentToken.type == IDENTIFIER) {
+                val argumentName = this.currentToken
+                advanceRegister(result)
+
+                var argumentType: Node? = null
+
+                if (this.currentToken.type == COLON) {
+                    advanceRegister(result)
+
+                    argumentType = result.register(this.call(child = true, type = true))
+
+                    if (result.error != null) {
+                        return result
+                    }
+                }
+
+                if (this.currentToken.type == COMMA) {
+                    advanceRegister(result)
+                }
+
+                arguments.add(Argument(argumentName, argumentType))
+            }
+
+            if (this.currentToken.type != ARROW) {
+                return result.failure(ParsingError(
+                    "Expected '->'",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
+            }
+
+            advanceRegister(result)
+        }
+
+        val body = result.register(this.statements())
+
+        if (result.error != null) {
+            return result
+        }
+
+        body as Node
+
+        if (this.currentToken.type != CLOSE_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '}'",
+                this.currentToken.start,
+                this.currentToken.end,
+            ))
+        }
+
+        advanceRegister(result)
+
+        return result.success(TaskDefineNode(
+            ANONYMOUS,
             false,
             returnType,
             arguments,
@@ -1223,7 +1350,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         val start = this.currentToken.start.clone()
 
         if (!config.natives) {
-            // not sure why...
+            // not sure why this is needed tbh...
             result.registerAdvancement()
 
             return result.failure(ParsingError(
