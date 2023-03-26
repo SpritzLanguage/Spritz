@@ -1,8 +1,11 @@
 package spritz.util
 
 import spritz.api.annotations.Identifier
+import spritz.api.result.Failure
+import spritz.api.result.Success
 import spritz.lexer.token.TokenType
 import spritz.lexer.token.TokenType.*
+import spritz.value.Value
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -54,6 +57,10 @@ fun Class<*>.getAllMethods(): List<Method> {
     }
 
     return methods
+}
+
+fun Value.success(): Success {
+    return Success(this)
 }
 
 val KEYWORDS = hashMapOf(

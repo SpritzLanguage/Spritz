@@ -1,5 +1,6 @@
 package spritz.builtin
 
+import spritz.api.annotations.Excluded
 import spritz.api.annotations.Identifier
 import spritz.api.result.Result
 import spritz.api.result.Success
@@ -10,6 +11,7 @@ import spritz.value.list.ListValue
 import spritz.value.number.FloatValue
 import spritz.value.number.IntValue
 import spritz.value.number.NumberValue
+import spritz.value.string.StringValue
 
 /**
  * @author surge
@@ -21,12 +23,20 @@ object Standard {
         kotlin.io.print(input)
     }
 
+    fun printf(input: StringValue, formatted: Value) {
+        print(format(input.value, if (formatted is ListValue) formatted.elements else listOf(formatted)))
+    }
+
     fun println(input: Value) {
         kotlin.io.println(input)
     }
 
+    fun printlnf(input: StringValue, formatted: Value) {
+        println(format(input.value, if (formatted is ListValue) formatted.elements else listOf(formatted)))
+    }
+
     fun readln(): String {
-        return kotlin.io.readln()
+        return readlnOrNull() ?: ""
     }
 
     @Identifier("int_range")
@@ -78,6 +88,29 @@ object Standard {
     @Identifier("exit_process")
     fun exitProcess(status: Int) {
         kotlin.system.exitProcess(status)
+    }
+
+    // utility functions
+    @Excluded
+    fun format(input: String, formatted: List<Value>): String {
+        var result = ""
+
+        var formatIndex = 0
+
+        input.forEachIndexed { index, char ->
+            if (char == '%') {
+                if (formatIndex <= formatted.lastIndex) {
+                    result += formatted[formatIndex].toString()
+                    formatIndex++
+                } else {
+                    result += '%'
+                }
+            } else {
+                result += char
+            }
+        }
+
+        return result
     }
 
 }

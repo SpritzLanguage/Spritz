@@ -23,9 +23,12 @@ class DefinedClassValue(identifier: String, val constructor: List<RequiredArgume
         val result = RuntimeResult()
         val interpreter = Interpreter()
 
-        val instanceContext = Context(identifier)
+        /*val instanceContext = Context(identifier)
 
         instanceContext.table = Table(context.getOrigin().table)
+        */
+
+        val instanceContext = generateExecuteContext()
 
         result.register(this.checkAndPopulate(constructor, passed, start, end, instanceContext))
 

@@ -231,7 +231,7 @@ class Interpreter {
                 return result
             }
 
-            elements.add(value!!)
+            elements.add(value ?: NullValue())
         }
 
         return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(context))

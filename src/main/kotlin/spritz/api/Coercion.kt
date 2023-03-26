@@ -70,7 +70,7 @@ object Coercion {
                 method,
 
                 { data ->
-                    val arguments = arrayListOf<Any>()
+                    val arguments = arrayListOf<Any?>()
 
                     if (method.parameters.any { it.type == CallData::class.java }) {
                         arguments.add(data)
@@ -157,7 +157,7 @@ object Coercion {
         throw IllegalStateException("No equivalent value found! (Got $clazz)")
     }
 
-    fun getEquivalentPrimitive(value: Value, clazz: Class<*>): Any {
+    fun getEquivalentPrimitive(value: Value, clazz: Class<*>): Any? {
         if (isValue(clazz)) {
             return value
         }
@@ -187,12 +187,8 @@ object Coercion {
                 }
             }
 
-            is StringValue -> {
-                return value.value
-            }
-
-            is BooleanValue -> {
-                return value.value
+            else -> {
+                return value.asJvmValue()
             }
         }
 

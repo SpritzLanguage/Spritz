@@ -6,7 +6,7 @@ task<int> main {
     const commands = [
         Command("quit", ["status"], task (args) {
             try -> std::exit_process(args::get(0)::int())
-            catch exception -> std::println("Failed to execute 'quit': " + exception::details)
+            catch exception -> std::printlnf("Failed to execute 'quit': %", exception::details)
         }),
 
         Command("echo", null, task (args) {
@@ -15,7 +15,7 @@ task<int> main {
 
         Command("store", ["identifier", "value"], task (args) {
             variables::set(args::get(0), args::get(1))
-            std::println("Set variable " + args::get(0) + " to " + args::get(1))
+            std::printlnf("Set variable '%' to '%'", [args::get(0), args::get(1)])
         })
     ]
 
@@ -29,14 +29,23 @@ task<int> main {
         mut arguments = input::after(1)
 
         const new = []
+        const br = false
 
         for (argument : arguments) {
             if (argument::char_at(0) == "$") {
                 try -> new::add(variables::get(argument::after(1)))
-                catch exception -> std::println("Couldn't find variable '" + argument::after(1) + "'")
+                catch exception {
+                    std::printlnf("Couldn't find variable '%'", argument::after(1))
+                    br = true
+                    break
+                }
             } else {
                 new::add(argument)
             }
+        }
+
+        if (br) {
+            continue
         }
 
         arguments = new
@@ -48,7 +57,7 @@ task<int> main {
                 if (command::arguments == null || arguments::length() == command::arguments::length()) {
                     command::execute(arguments)
                 } else {
-                    std::println("Invalid arguments for '" + command::name + "'. Expected '" + command::name + " " + command::arguments::join(" ", "[%]") + "'")
+                    std::printlnf("Invalid arguments for '%'. Expected '% %'", [command::name, command::name, command::arguments::join(" ", "[%]")])
                 }
 
                 found = true

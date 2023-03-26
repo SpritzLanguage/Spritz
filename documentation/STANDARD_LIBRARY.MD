@@ -16,8 +16,16 @@ A filler for a non-existent value.
 ### `print(input: any)`
 Prints a value (without a new line) to the console
 
+### `printf(input: string, format: any)`
+Prints the given `input` to the console (without a new line), but replaces the first instance of `%` in the given `input` with the corresponding value `format`.
+If `format` is a `list`, instances of `%` will be replaced with the value at the corresponding instance in `format`.
+
 ### `println(input: any)`
 Prints a value (with a new line) to the console
+
+### `printlnf(input: string, format: any)`
+Prints the given `input` to the console (with a new line), but replaces the first instance of `%` in the given `input` with the corresponding value `format`.
+If `format` is a `list`, instances of `%` will be replaced with the value at the corresponding instance in `format`.
 
 ### `<string> readln()`
 Waits for the console to have input, then returns it.

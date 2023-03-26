@@ -17,38 +17,6 @@ import java.lang.reflect.Field
 class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleName) {
 
     init {
-        /*this.table.setGet {identifier, start, end, context ->
-            try {
-                var field: Any? = instance::class.java.declaredFields.filter { !it.isAnnotationPresent(Excluded::class.java) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
-
-                if (field == null) {
-                    field = instance::class.java.declaredMethods.filter { !it.isAnnotationPresent(Excluded::class.java) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
-                }
-
-                if (field == null) {
-                    field = instance::class.java.declaredClasses.filter { !it.isAnnotationPresent(Excluded::class.java) }.firstOrNull { it.name == identifier }
-                }
-
-                if (field == null) {
-                    return@setGet Result(null, JvmError(
-                        "'$identifier' is not present in ${instance::class.java.simpleName}",
-                        start,
-                        end,
-                        context
-                    ))
-                }
-
-                return@setGet Result(Coercion.IntoSpritz.coerce(field, instance), null)
-            } catch (exception: Exception) {
-                return@setGet Result(null, JvmError(
-                    exception.message!!,
-                    start,
-                    end,
-                    context
-                ))
-            }
-        }*/
-
         this.table.setGet { identifier, predicate, _, data ->
             try {
                 var field: Any? = instance::class.java.getAllFields().filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it.get(instance))) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
