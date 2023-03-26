@@ -16,14 +16,14 @@ import spritz.value.string.StringValue
  * @author surge
  * @since 20/03/2023
  */
-class DictionaryCompanion(@Excluded val dictionary: DictionaryValue) {
+class DictionaryCompanion(value: DictionaryValue) : Companion(value) {
 
     fun set(key: StringValue, value: Value) {
-        this.dictionary.elements[key.value] = value
+        (this.value as DictionaryValue).elements[key.value] = value
     }
 
     fun get(data: CallData, key: StringValue): Result {
-        return dictionary.elements[key.value]?.success() ?: Failure(MemberNotFoundError(
+        return (this.value as DictionaryValue).elements[key.value]?.success() ?: Failure(MemberNotFoundError(
             "'${key.value}' was not found",
             data.start,
             data.end,
@@ -32,7 +32,7 @@ class DictionaryCompanion(@Excluded val dictionary: DictionaryValue) {
     }
 
     fun remove(data: CallData, key: StringValue): Result {
-        return dictionary.elements.remove(key.value)?.success() ?: Failure(MemberNotFoundError(
+        return (this.value as DictionaryValue).elements.remove(key.value)?.success() ?: Failure(MemberNotFoundError(
             "'${key.value}' was not found",
             data.start,
             data.end,
@@ -41,7 +41,7 @@ class DictionaryCompanion(@Excluded val dictionary: DictionaryValue) {
     }
 
     fun length(): Int {
-        return dictionary.elements.size
+        return (this.value as DictionaryValue).elements.size
     }
 
 }

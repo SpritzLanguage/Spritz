@@ -36,7 +36,7 @@ fun Class<*>.getAllFields(): List<Field> {
         fields.add(it)
     }
 
-    if (this.superclass != null) {
+    if (this.superclass != null && this.superclass != Any::class.java) {
         fields.addAll(this.superclass.getAllFields())
     }
 
@@ -52,7 +52,7 @@ fun Class<*>.getAllMethods(): List<Method> {
         methods.add(it)
     }
 
-    if (this.superclass != null) {
+    if (this.superclass != null && this.superclass != Any::class.java) {
         methods.addAll(this.superclass.getAllMethods())
     }
 

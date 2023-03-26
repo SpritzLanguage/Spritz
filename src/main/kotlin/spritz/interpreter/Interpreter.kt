@@ -93,7 +93,7 @@ class Interpreter {
         }
 
         if (node.operator.type == OR && left is BooleanValue && left.value) {
-            return result.success(BooleanValue(true).positioned(node.start, node.end).givenContext(context))
+            return result.success(BooleanValue(true).position(node.start, node.end).givenContext(context))
         }
 
         val right = result.register(this.visit(node.right, context))
@@ -143,7 +143,7 @@ class Interpreter {
         return if (operated.second != null) {
             result.failure(operated.second!!)
         } else {
-            result.success(operated.first!!.positioned(node.start, node.end).givenContext(context))
+            result.success(operated.first!!.position(node.start, node.end).givenContext(context))
         }
     }
 
@@ -166,7 +166,7 @@ class Interpreter {
                     return result.failure(transformed.second!!)
                 }
 
-                return result.success(transformed.first!!.positioned(node.start, node.end))
+                return result.success(transformed.first!!.position(node.start, node.end))
             }
 
             NEGATE -> {
@@ -176,7 +176,7 @@ class Interpreter {
                     return result.failure(transformed.second!!)
                 }
 
-                return result.success(transformed.first!!.positioned(node.start, node.end))
+                return result.success(transformed.first!!.position(node.start, node.end))
             }
 
             BIN_COMPLEMENT -> {
@@ -186,7 +186,7 @@ class Interpreter {
                     return result.failure(transformed.second!!)
                 }
 
-                return result.success(transformed.first!!.positioned(node.start, node.end))
+                return result.success(transformed.first!!.position(node.start, node.end))
             }
 
             else -> {
@@ -207,7 +207,7 @@ class Interpreter {
             BYTE -> ByteValue(node.token.value.toString().toByte())
             INT -> IntValue(node.token.value.toString().toInt())
             else -> FloatValue(node.token.value.toString().toFloat())
-        }.positioned(node.start, node.end).givenContext(context)
+        }.position(node.start, node.end).givenContext(context)
 
         val child = result.register(child(node, reference, context))
 
@@ -234,7 +234,7 @@ class Interpreter {
             elements.add(value ?: NullValue())
         }
 
-        return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(context))
+        return result.success(ListValue(elements).position(node.start, node.end).givenContext(context))
     }
 
     private fun dictionary(node: DictionaryNode, context: Context, childContext: Context): RuntimeResult {
@@ -251,13 +251,13 @@ class Interpreter {
             elements[key] = value!!
         }
 
-        return result.success(DictionaryValue(elements).positioned(node.start, node.end).givenContext(context))
+        return result.success(DictionaryValue(elements).position(node.start, node.end).givenContext(context))
     }
 
     private fun string(node: StringNode, context: Context, childContext: Context): RuntimeResult {
         val result = RuntimeResult()
 
-        var reference = StringValue(node.value.value.toString()).positioned(node.start, node.end).givenContext(context)
+        var reference = StringValue(node.value.value.toString()).position(node.start, node.end).givenContext(context)
 
         val child = result.register(child(node, reference, context))
 
@@ -486,7 +486,7 @@ class Interpreter {
         }
 
         val task = DefinedTaskValue(name, arguments, node.body, node.expression, returnType)
-            .positioned(node.start, node.end)
+            .position(node.start, node.end)
             .givenContext(context) as DefinedTaskValue
 
         val set = TableAccessor(context.table)
@@ -523,7 +523,7 @@ class Interpreter {
             }
         }
 
-        val `class` = DefinedClassValue(name, constructor, node.body).positioned(node.start, node.end).givenContext(context)
+        val `class` = DefinedClassValue(name, constructor, node.body).position(node.start, node.end).givenContext(context)
 
         val set = TableAccessor(context.table)
             .identifier(name)
@@ -566,7 +566,7 @@ class Interpreter {
             return result
         }
 
-        target!!.clone().positioned(node.start, node.end).givenContext(context)
+        target!!.clone().position(node.start, node.end).givenContext(context)
 
         var returned = result.register(target.execute(passedArguments, node.start, node.end, context))
 
@@ -586,7 +586,7 @@ class Interpreter {
 
         returned = child!!
 
-        returned = returned.clone().positioned(node.start, node.end).givenContext(context)
+        returned = returned.clone().position(node.start, node.end).givenContext(context)
 
         return result.success(returned)
     }
@@ -601,9 +601,9 @@ class Interpreter {
                 return result
             }
 
-            local!!.positioned(node.start, node.end).givenContext(context)
+            local!!.position(node.start, node.end).givenContext(context)
         } else {
-            NullValue().positioned(node.start, node.end).givenContext(context)
+            NullValue().position(node.start, node.end).givenContext(context)
         }
 
         return result.successReturn(value)
@@ -663,7 +663,7 @@ class Interpreter {
             elements.add(body!!)
         }
 
-        return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(scope))
+        return result.success(ListValue(elements).position(node.start, node.end).givenContext(scope))
     }
 
     private fun `while`(node: WhileNode, context: Context, childContext: Context): RuntimeResult {
@@ -714,7 +714,7 @@ class Interpreter {
             elements.add(value!!)
         }
 
-        return result.success(ListValue(elements).positioned(node.start, node.end).givenContext(scope))
+        return result.success(ListValue(elements).position(node.start, node.end).givenContext(scope))
     }
 
     private fun `try`(node: TryNode, context: Context, childContext: Context): RuntimeResult {

@@ -6,18 +6,19 @@ import spritz.error.interpreting.JvmError
 import spritz.util.coercedName
 import spritz.util.getAllFields
 import spritz.util.getAllMethods
-import spritz.value.Value
 import spritz.value.table.result.Result
 import java.lang.reflect.Field
 
 /**
+ * I am not documenting this.
+ *
  * @author surge
  * @since 18/03/2023
  */
-class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleName) {
+class JvmInstanceValue(val instance: Any) : InstanceValue(instance::class.java.simpleName) {
 
     init {
-        this.table.setGet { identifier, predicate, _, data ->
+        this.table.overrideGet { identifier, predicate, _, data ->
             try {
                 var field: Any? = instance::class.java.getAllFields().filter { !it.isAnnotationPresent(Excluded::class.java) && predicate(Coercion.IntoSpritz.coerce(it.get(instance))) }.firstOrNull { it.coercedName() == identifier }?.also { it.isAccessible = true }
 
@@ -30,7 +31,7 @@ class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleNam
                 }
 
                 if (field == null) {
-                    return@setGet Result(null, JvmError(
+                    return@overrideGet Result(null, JvmError(
                         "'$identifier' is not present in ${instance::class.java.simpleName}",
                         data.start,
                         data.end,
@@ -38,9 +39,9 @@ class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleNam
                     ))
                 }
 
-                return@setGet Result(Coercion.IntoSpritz.coerce(field, instance).positioned(data.start, data.end).givenContext(data.context), null)
+                return@overrideGet Result(Coercion.IntoSpritz.coerce(field, instance).position(data.start, data.end).givenContext(data.context), null)
             } catch (exception: Exception) {
-                return@setGet Result(null, JvmError(
+                return@overrideGet Result(null, JvmError(
                     exception.message!!,
                     data.start,
                     data.end,
@@ -49,16 +50,16 @@ class JvmInstanceValue(val instance: Any) : Value(instance::class.java.simpleNam
             }
         }
 
-        this.table.setSet {
+        this.table.overrideSet {
             try {
                 val field: Field = instance::class.java.declaredFields.filter { !it.isAnnotationPresent(Excluded::class.java) }.firstOrNull { field -> field.coercedName() == identifier }
                     ?: throw Error("'$identifier' is not present in ${instance::class.java.simpleName}")
 
                 field.set(instance, it.value.asJvmValue())
 
-                return@setSet Result(null, null)
+                return@overrideSet Result(null, null)
             } catch (exception: Exception) {
-                return@setSet Result(null, JvmError(
+                return@overrideSet Result(null, JvmError(
                     exception.message!!,
                     start,
                     end,

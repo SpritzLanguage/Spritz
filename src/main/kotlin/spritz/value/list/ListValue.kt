@@ -1,15 +1,9 @@
 package spritz.value.list
 
 import spritz.SpritzEnvironment
-import spritz.api.Coercion
-import spritz.api.annotations.Excluded
 import spritz.builtin.companions.ListCompanion
-import spritz.error.interpreting.JvmError
 import spritz.interpreter.context.Context
-import spritz.util.coercedName
 import spritz.value.Value
-import spritz.value.table.result.Result
-import java.lang.reflect.Field
 
 /**
  * @author surge
@@ -18,7 +12,7 @@ import java.lang.reflect.Field
 class ListValue(val elements: MutableList<Value>) : Value("list") {
 
     init {
-        SpritzEnvironment.putIntoTable(ListCompanion(this), this.table, Context("list"))
+        SpritzEnvironment.putIntoTable(ListCompanion(this), this.table, Context("companion"))
     }
 
     override fun asJvmValue() = elements

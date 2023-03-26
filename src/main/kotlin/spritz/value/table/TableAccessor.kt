@@ -9,36 +9,65 @@ import spritz.value.Value
 import spritz.value.table.result.Result
 
 /**
+ * Used for interacting with tables.
+ *
  * @author surge
  * @since 24/03/2023
  */
 class TableAccessor(private val table: Table) {
 
+    // the identifier we want to fetch
     private var identifier: String? = null
+
+    // any filter we want to apply
     private var predicate: (Value?) -> Boolean = { true }
+
+    // if we only want to get a value from the top level of symbols, and exclude parents.
     private var top: Boolean = false
+
+    // if we want to set the value to be immutable
     private var immutable: Boolean = false
 
+    /**
+     * Sets the [identifier] we want to fetch.
+     * @return This instance.
+     */
     fun identifier(identifier: String?): TableAccessor {
         this.identifier = identifier
         return this
     }
 
+    /**
+     * Sets the filter to apply.
+     * @return This instance.
+     */
     fun predicate(predicate: (Value?) -> Boolean): TableAccessor {
         this.predicate = predicate
         return this
     }
 
+    /**
+     * Sets the [top] state.
+     * @return This instance.
+     */
     fun top(top: Boolean): TableAccessor {
         this.top = top
         return this
     }
 
+    /**
+     * Sets the [immutable] state.
+     * @return This instance.
+     */
     fun immutable(immutable: Boolean): TableAccessor {
         this.immutable = immutable
         return this
     }
 
+    /**
+     * Finds the value with the filters that have been applied.
+     * @return A result which either contains a [Value] or a [spritz.error.Error].
+     */
     fun find(start: Position = LinkPosition(), end: Position = LinkPosition(), context: Context = Context("link")): Result {
         if (table.getOverride != null) {
             return table.getOverride!!(table, identifier, predicate, top, Table.Data(start, end, context))
@@ -72,6 +101,10 @@ class TableAccessor(private val table: Table) {
         ))
     }
 
+    /**
+     * Finds and sets the value with the filters that have been applied.
+     * @return A result which either contains a [Value] or a [spritz.error.Error].
+     */
     fun set(value: Value, declaration: Boolean = true, forced: Boolean = false, data: Table.Data = Table.Data(LinkPosition(), LinkPosition(), Context("link"))): Result {
         val symbol = Symbol(this.identifier!!, value, data.start, data.end)
 

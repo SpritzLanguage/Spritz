@@ -55,7 +55,7 @@ Primitives:
 <li> <code>task</code> </li>
 </ul>
 
-### String
+## String
 ### `<int> length()`
 Gets the length of the string
 
@@ -95,7 +95,7 @@ Converts the string to a byte value.
 ### `<boolean> boolean()`
 Converts the string to a boolean value.
 
-### List
+## List
 ### `add(value: any)`
 Adds the given `value` to the list.
 
@@ -120,7 +120,7 @@ Gets a list of elements after the given index (inclusive).
 ### `<string> join(separator: string, format: string)`
 Returns a string that represents the concatenated list values, with the element being formatted by `format`, with `%` representing the item.
 
-### Dictionary
+## Dictionary
 ### `set(key: string, value: any)`
 Sets the element mapped to the given `key` to `value`.
 
@@ -132,3 +132,18 @@ Removes the value mapped to the given `key`, and returns the last value that was
 
 ### `<int> length()`
 Gets the length of the dictionary.
+
+## Class
+### `name`
+The name of this class.
+
+## Instance
+### `<any> get_parent()`
+Gets the parent class of this instance, or `null` if this instance is a JVM instance.
+
+## Task
+### `name`
+The name of this task.
+
+### `return_type`
+Gets the return type of this task, or `null` if it does not have a return type or is a JVM method.

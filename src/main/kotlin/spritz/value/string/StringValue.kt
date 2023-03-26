@@ -15,7 +15,7 @@ import spritz.interpreter.context.Context
 class StringValue(val value: String) : Value("string") {
 
     init {
-        SpritzEnvironment.putIntoTable(StringCompanion(this), this.table, Context("string"))
+        SpritzEnvironment.putIntoTable(StringCompanion(this), this.table, Context("companion"))
     }
 
     override fun asJvmValue() = value

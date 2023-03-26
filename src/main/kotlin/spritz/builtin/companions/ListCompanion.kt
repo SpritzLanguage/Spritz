@@ -1,44 +1,40 @@
 package spritz.builtin.companions
 
-import spritz.api.annotations.Excluded
 import spritz.api.annotations.Identifier
-import spritz.value.NullValue
 import spritz.value.Value
-import spritz.value.dictionary.DictionaryValue
 import spritz.value.list.ListValue
-import spritz.value.string.StringValue
 
 /**
  * @author surge
  * @since 20/03/2023
  */
-class ListCompanion(@Excluded val list: ListValue) {
+class ListCompanion(value: ListValue) : Companion(value) {
 
     fun add(value: Value) {
-        this.list.elements.add(value)
+        (this.value as ListValue).elements.add(value)
     }
 
     fun get(index: Int): Value {
-        return list.elements[index]
+        return (this.value as ListValue).elements[index]
     }
 
     fun remove(value: Value): Boolean {
-        return list.elements.remove(value)
+        return (this.value as ListValue).elements.remove(value)
     }
 
     fun removeAt(index: Int): Value {
-        return list.elements.removeAt(index)
+        return (this.value as ListValue).elements.removeAt(index)
     }
 
     fun length(): Int {
-        return list.elements.size
+        return (this.value as ListValue).elements.size
     }
 
     fun after(index: Int): List<Value> {
         val elements = mutableListOf<Value>()
 
-        for (i in index until this.list.elements.size) {
-            elements.add(this.list.elements[i])
+        for (i in index until (this.value as ListValue).elements.size) {
+            elements.add(this.value.elements[i])
         }
 
         return elements
@@ -46,14 +42,14 @@ class ListCompanion(@Excluded val list: ListValue) {
 
     @Identifier("is_empty")
     fun isEmpty(): Boolean {
-        return this.list.elements.isEmpty()
+        return (this.value as ListValue).elements.isEmpty()
     }
 
     fun join(separator: String, format: String): String {
         var concat = ""
 
-        this.list.elements.forEachIndexed { index, value ->
-            concat += format.replace("%", value.toString()) + if (index != this.list.elements.lastIndex) separator else ""
+        (this.value as ListValue).elements.forEachIndexed { index, value ->
+            concat += format.replace("%", value.toString()) + if (index != this.value.elements.lastIndex) separator else ""
         }
 
         return concat

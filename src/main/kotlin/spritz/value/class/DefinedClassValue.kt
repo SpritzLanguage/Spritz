@@ -1,5 +1,7 @@
 package spritz.value.`class`
 
+import spritz.SpritzEnvironment
+import spritz.builtin.companions.ClassCompanion
 import spritz.interpreter.Interpreter
 import spritz.interpreter.RuntimeResult
 import spritz.interpreter.context.Context
@@ -9,13 +11,16 @@ import spritz.util.RequiredArgument
 import spritz.value.Value
 import spritz.value.table.Table
 import spritz.value.table.TableAccessor
-import spritz.value.task.TaskValue
 
 /**
  * @author surge
  * @since 04/03/2023
  */
-class DefinedClassValue(identifier: String, val constructor: List<RequiredArgument>, val body: Node?) : TaskValue(identifier = identifier, identifier) {
+class DefinedClassValue(identifier: String, val constructor: List<RequiredArgument>, val body: Node?) : ClassValue(identifier = identifier, identifier) {
+
+    init {
+        SpritzEnvironment.putIntoTable(ClassCompanion(this), this.table, Context("companion"))
+    }
 
     override fun asJvmValue() = this
 
@@ -23,19 +28,17 @@ class DefinedClassValue(identifier: String, val constructor: List<RequiredArgume
         val result = RuntimeResult()
         val interpreter = Interpreter()
 
-        /*val instanceContext = Context(identifier)
-
-        instanceContext.table = Table(context.getOrigin().table)
-        */
-
+        // generate new context
         val instanceContext = generateExecuteContext()
 
+        // check and populate arguments
         result.register(this.checkAndPopulate(constructor, passed, start, end, instanceContext))
 
         if (result.shouldReturn()) {
             return result
         }
 
+        // table that holds any tasks and variables inside the instance.
         val table = Table()
 
         if (body != null) {
@@ -46,15 +49,18 @@ class DefinedClassValue(identifier: String, val constructor: List<RequiredArgume
             }
         }
 
+        // add symbols to table
         table.symbols.addAll(instanceContext.table.symbols)
-        val instance = InstanceValue(this, table)
+
+        // generate instance
+        val instance = DefinedInstanceValue(this, table)
 
         TableAccessor(instance.table)
             .identifier("this")
             .immutable(true)
             .set(instance, forced = true, data = Table.Data(this.start, this.end, context))
 
-        return result.success(instance.positioned(start, end).givenContext(instanceContext))
+        return result.success(instance.position(start, end).givenContext(instanceContext))
     }
 
     override fun toString() = super.toString().ifEmpty { "($identifier)" }

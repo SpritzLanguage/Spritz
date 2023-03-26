@@ -5,7 +5,7 @@ import spritz.util.NUMBERS
 import spritz.value.PrimitiveValue
 import spritz.value.bool.BooleanValue
 import spritz.value.`class`.DefinedClassValue
-import spritz.value.`class`.InstanceValue
+import spritz.value.`class`.DefinedInstanceValue
 import spritz.value.`class`.JvmClassValue
 import spritz.value.`class`.JvmInstanceValue
 import spritz.value.list.ListValue
@@ -40,6 +40,6 @@ object Global {
     @JvmField val task = PrimitiveValue("task") { given, required -> given is TaskValue && required.type == "task" }
     @JvmField val list = PrimitiveValue("list") { given, required -> given is ListValue && required.type == "list" }
     @Identifier("class") @JvmField val `class` = PrimitiveValue("class") { given, required -> (given is DefinedClassValue || given is JvmClassValue) && required.type == "class" }
-    @JvmField val instance = PrimitiveValue("instance") { given, required -> (given is InstanceValue || given is JvmInstanceValue) && required.type == "instance" }
+    @JvmField val instance = PrimitiveValue("instance") { given, required -> (given is DefinedInstanceValue || given is JvmInstanceValue) && required.type == "instance" }
 
 }

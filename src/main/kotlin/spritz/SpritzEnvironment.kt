@@ -12,30 +12,43 @@ import spritz.lexer.Lexer
 import spritz.lexer.position.LinkPosition
 import spritz.parser.Parser
 import spritz.util.coercedName
+import spritz.util.getAllFields
+import spritz.util.getAllMethods
 import spritz.value.`class`.JvmClassValue
 import spritz.value.table.Table
 import spritz.value.table.TableAccessor
 import spritz.warning.Warning
 
 /**
+ * An environment that contains the global value table, origin context, handlers, etc.
+ *
  * @author surge
  * @since 25/02/2023
  */
 class SpritzEnvironment(val config: Config = Config()) {
 
+    // bottom of the table hierarchy
     val global = Table()
+
+    // bottom of the context hierarchy
     val origin = Context("<program>").givenTable(global)
 
+    // handlers, how each warning or error should be handled
     private var warningHandler: (Warning) -> Unit = {}
     private var errorHandler: (Error) -> Unit = {}
 
     init {
+        // load builtins
         if (config.loadDefaults) {
             this.putInstance("std", Standard)
             this.putIntoGlobal(Global)
         }
     }
 
+    /**
+     * Evaluates the given [content]. [fileName] is used for error handling.
+     * @return An [EvaluationResult], which contains the returned value, warnings, and an error, if one was produced.
+     */
     fun evaluate(fileName: String, content: String): EvaluationResult {
         val lexer = Lexer(fileName, content).lex()
 
@@ -63,6 +76,10 @@ class SpritzEnvironment(val config: Config = Config()) {
         return EvaluationResult(interpreter.value, parser.warnings, null)
     }
 
+    /**
+     * Adds a referencable value to the [global] value table, which can be used in a script.
+     * @return This environment
+     */
     fun putInstance(identifier: String, instance: Any): SpritzEnvironment {
         TableAccessor(global)
             .identifier(identifier)
@@ -72,6 +89,10 @@ class SpritzEnvironment(val config: Config = Config()) {
         return this
     }
 
+    /**
+     * Adds a referencable class to the [global] value table, which can be instantiated in a script.
+     * @return This environment
+     */
     fun putClass(identifier: String, clazz: Class<*>): SpritzEnvironment {
         TableAccessor(global)
             .identifier(identifier)
@@ -81,17 +102,29 @@ class SpritzEnvironment(val config: Config = Config()) {
         return this
     }
 
+    /**
+     * Directly adds the (current) fields and methods to the [global] value table. The values will never update.
+     * @return This environment
+     */
     fun putIntoGlobal(instance: Any): SpritzEnvironment {
         putIntoTable(instance, global, origin)
 
         return this
     }
 
+    /**
+     * Sets the warning handler
+     * @return This environment
+     */
     fun setWarningHandler(handler: (Warning) -> Unit): SpritzEnvironment {
         warningHandler = handler
         return this
     }
 
+    /**
+     * Sets the error handler
+     * @return This environment
+     */
     fun setErrorHandler(handler: (Error) -> Unit): SpritzEnvironment {
         errorHandler = handler
         return this
@@ -99,6 +132,10 @@ class SpritzEnvironment(val config: Config = Config()) {
 
     companion object {
 
+        /**
+         * Directly adds the (current) fields and methods from the given [instance] into the given [table].
+         * Values are given [context].
+         */
         @JvmStatic
         fun putIntoTable(instance: Any, table: Table, context: Context) {
             instance::class.java.declaredFields.forEach {
@@ -111,7 +148,7 @@ class SpritzEnvironment(val config: Config = Config()) {
                 TableAccessor(table)
                     .identifier(it.coercedName())
                     .immutable(true)
-                    .set(Coercion.IntoSpritz.coerce(it).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
+                    .set(Coercion.IntoSpritz.coerce(it, instance).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
             }
 
             instance::class.java.declaredMethods.forEach {

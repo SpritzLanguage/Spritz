@@ -113,6 +113,10 @@ open class NumberValue<T : Number>(val value: T, type: String) : Value(type) {
 
     override fun toString() = this.value.toString()
 
+    /**
+     * Converts a value to a float, if it needs to be converted.
+     * @return The corrected value.
+     */
     private fun convert(result: Number): NumberValue<*> {
         return if (result is Float) {
             FloatValue(result.toFloat())
@@ -121,6 +125,9 @@ open class NumberValue<T : Number>(val value: T, type: String) : Value(type) {
         }
     }
 
+    /**
+     * Checks if the value needs to be converted to a [FloatValue] based on this value and [other].
+     */
     private fun shouldConvert(other: NumberValue<*>): Boolean = this.value is Float || other.value is Float
 
 }

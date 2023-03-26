@@ -1,6 +1,8 @@
 package spritz.value
 
 /**
+ * A value representing nothing.
+ *
  * @author surge
  * @since 18/03/2023
  */

@@ -4,6 +4,8 @@ import spritz.lexer.token.Token
 import spritz.value.Value
 
 /**
+ * Holds the [name] of this argument and it's required [type]. (Used in interpreting).
+ *
  * @author surge
  * @since 03/03/2023
  */

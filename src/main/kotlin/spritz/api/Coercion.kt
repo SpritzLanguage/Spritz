@@ -33,18 +33,19 @@ object Coercion {
 
     object IntoSpritz {
 
+        /**
+         * Coerces [any], with the given [instance] (which defaults to [any]).
+         * @return The coerced value.
+         */
         fun coerce(any: Any?, instance: Any? = any): Value {
             if (any == null) {
-                return NullValue().positioned(LinkPosition(), LinkPosition()).givenContext(Context("null"))
+                return NullValue().position(LinkPosition(), LinkPosition()).givenContext(Context("null"))
             }
 
             return when (any) {
                 is Value -> any
 
-                is Field -> {
-                    coerce(any.get(instance))
-                }
-
+                is Field -> coerce(any.get(instance))
                 is Boolean -> BooleanValue(any)
                 is Number -> coerceNumber(any)
                 is String -> StringValue(any)
@@ -53,10 +54,14 @@ object Coercion {
 
                 else -> JvmInstanceValue(any)
 
-            }.positioned(LinkPosition(), LinkPosition()).givenContext(Context(any::class.java.simpleName))
+            }.position(LinkPosition(), LinkPosition()).givenContext(Context(any::class.java.simpleName))
         }
 
-        fun coerceMethod(instance: Any, identifier: String, method: Method): Value {
+        /**
+         * Coerces a method inside the given [instance], with the given [identifier].
+         * @return The coerced task value.
+         */
+        fun coerceMethod(instance: Any, identifier: String, method: Method): JvmTaskValue {
             val types = method.parameterTypes.filter { it != CallData::class.java }
             val converted = arrayListOf<Class<*>>()
 
@@ -121,14 +126,18 @@ object Coercion {
             )
         }
 
-    }
-
-    fun coerceNumber(number: Number): NumberValue<*> {
-        return when (number) {
-            is Byte -> ByteValue(number)
-            is Int, is Short, is Long -> IntValue(number.toInt())
-            else -> FloatValue(number.toFloat())
+        /**
+         * Coerces a given number.
+         * @return The coerced number value.
+         */
+        fun coerceNumber(number: Number): NumberValue<*> {
+            return when (number) {
+                is Byte -> ByteValue(number)
+                is Int, is Short, is Long -> IntValue(number.toInt())
+                else -> FloatValue(number.toFloat())
+            }
         }
+
     }
 
     fun getEquivalentValue(clazz: Class<*>): Class<*> {
@@ -153,8 +162,6 @@ object Coercion {
                 return JvmInstanceValue::class.java
             }
         }
-
-        throw IllegalStateException("No equivalent value found! (Got $clazz)")
     }
 
     fun getEquivalentPrimitive(value: Value, clazz: Class<*>): Any? {

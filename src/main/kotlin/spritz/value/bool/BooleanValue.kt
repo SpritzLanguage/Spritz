@@ -1,6 +1,10 @@
 package spritz.value.bool
 
+import spritz.SpritzEnvironment
+import spritz.builtin.companions.BooleanCompanion
+import spritz.builtin.companions.ClassCompanion
 import spritz.error.Error
+import spritz.interpreter.context.Context
 import spritz.lexer.token.Token
 import spritz.value.Value
 
@@ -9,6 +13,10 @@ import spritz.value.Value
  * @since 18/03/2023
  */
 class BooleanValue(var value: Boolean) : Value("boolean") {
+
+    init {
+        SpritzEnvironment.putIntoTable(BooleanCompanion(this), this.table, Context("companion"))
+    }
 
     override fun asJvmValue() = value
 

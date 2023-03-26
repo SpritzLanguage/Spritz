@@ -12,7 +12,7 @@ import spritz.value.Value
 class DictionaryValue(val elements: HashMap<String, Value>) : Value("dictionary") {
 
     init {
-        SpritzEnvironment.putIntoTable(DictionaryCompanion(this), this.table, Context("dictionary"))
+        SpritzEnvironment.putIntoTable(DictionaryCompanion(this), this.table, Context("companion"))
     }
 
     override fun asJvmValue() = elements

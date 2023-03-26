@@ -1,14 +1,21 @@
 package spritz.value.number
 
+import spritz.SpritzEnvironment
+import spritz.builtin.companions.NumberCompanion
 import spritz.lexer.token.Token
 import spritz.value.Value
 import spritz.error.Error
+import spritz.interpreter.context.Context
 
 /**
  * @author surge
  * @since 02/03/2023
  */
 class IntValue(value: Int) : NumberValue<Int>(value, "int") {
+
+    init {
+        SpritzEnvironment.putIntoTable(NumberCompanion(this), this.table, Context("companion"))
+    }
 
     override fun binShl(other: Value, operator: Token<*>): Pair<Value?, Error?> {
         if (other is IntValue) {

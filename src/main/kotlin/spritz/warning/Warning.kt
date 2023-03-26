@@ -3,6 +3,9 @@ package spritz.warning
 import spritz.lexer.position.Position
 
 /**
+ * A warning that has been produced during parsing. Contains [details] of
+ * the warning as well as the [start] of where the warning was produced.
+ *
  * @author surge
  * @since 10/03/2023
  */

@@ -1,6 +1,8 @@
 package spritz.api.annotations
 
 /**
+ * Marks a function or field to have its identifier overridden.
+ *
  * @author surge
  * @since 04/03/2023
  */
