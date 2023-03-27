@@ -26,6 +26,8 @@ operator fun String.times(amount: Int): String {
 
 fun Field.coercedName(): String = this.getAnnotation(Identifier::class.java)?.identifier ?: this.name
 fun Method.coercedName(): String = this.getAnnotation(Identifier::class.java)?.identifier ?: this.name
+fun Class<*>.coercedName(): String = this.getAnnotation(Identifier::class.java)?.identifier ?: this.simpleName
+fun Enum<*>.coercedName(): String = this.declaringClass.getField(this.name).getAnnotation(Identifier::class.java)?.identifier ?: this.name
 
 fun Class<*>.getAllFields(): List<Field> {
     val fields = mutableListOf<Field>()
@@ -78,6 +80,7 @@ val KEYWORDS = hashMapOf(
     "task" to "task",
     "lambda" to "lambda",
     "class" to "class",
+    "enum" to "enum",
     "mutable" to "mut",
     "constant" to "const",
     "native" to "native",

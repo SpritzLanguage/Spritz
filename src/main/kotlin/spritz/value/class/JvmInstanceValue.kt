@@ -44,6 +44,12 @@ class JvmInstanceValue(val instance: Any) : InstanceValue(instance::class.java.s
                 }
 
                 if (field == null) {
+                    field = instance::class.java.enumConstants?.filter {
+                        predicate(Coercion.IntoSpritz.coerce(it)) && !it::class.java.isAnnotationPresent(Excluded::class.java)
+                    }?.firstOrNull { it::class.java.coercedName() == identifier }
+                }
+
+                if (field == null) {
                     return@overrideGet Result(null, JvmError(
                         "'$identifier' is not present in ${instance::class.java.simpleName}",
                         data.start,

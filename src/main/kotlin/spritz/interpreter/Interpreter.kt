@@ -20,6 +20,7 @@ import spritz.value.bool.BooleanValue
 import spritz.value.`class`.DefinedClassValue
 import spritz.value.`class`.JvmClassValue
 import spritz.value.dictionary.DictionaryValue
+import spritz.value.enum.EnumValue
 import spritz.value.list.ListValue
 import spritz.value.number.*
 import spritz.value.string.StringValue
@@ -50,6 +51,7 @@ class Interpreter {
         AccessNode::class.java to { node: Node, parentContext: Context, childContext: Context -> access(node as AccessNode, parentContext, childContext) },
         TaskDefineNode::class.java to { node: Node, parentContext: Context, childContext: Context -> defineTask(node as TaskDefineNode, parentContext, childContext) },
         ClassDefineNode::class.java to { node: Node, parentContext: Context, childContext: Context -> defineClass(node as ClassDefineNode, parentContext, childContext) },
+        EnumDefineNode::class.java to { node: Node, parentContext: Context, childContext: Context -> enum(node as EnumDefineNode, parentContext, childContext) },
         TaskCallNode::class.java to { node: Node, parentContext: Context, childContext: Context -> callTask(node as TaskCallNode, parentContext, childContext) },
 
         // branch control
@@ -794,6 +796,65 @@ class Interpreter {
         }
 
         return result.success(clazz)
+    }
+
+    private fun enum(node: EnumDefineNode, context: Context, childContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val resolvedArguments = arrayListOf<RequiredArgument>()
+
+        node.constructor.forEach {
+            if (it.type != null) {
+                val resolved = result.register(this.visit(it.type, context))
+
+                if (result.shouldReturn()) {
+                    return result
+                }
+
+                resolvedArguments.add(RequiredArgument(it.name, resolved))
+            } else {
+                resolvedArguments.add(RequiredArgument(it.name, null))
+            }
+        }
+
+        val members = linkedMapOf<String, Value>()
+
+        for ((name, arguments) in node.members) {
+            val passedArguments = mutableListOf<Value>()
+
+            arguments.forEach {
+                val value = result.register(this.visit(it, context))
+
+                if (result.error != null) {
+                    return result
+                }
+
+                passedArguments.add(value!!)
+            }
+
+            val clazz = DefinedClassValue(name.value.toString(), resolvedArguments, node.body)
+                .position(name.start, resolvedArguments.lastOrNull()?.name?.end ?: name.end)
+                .givenContext(context)
+
+            val member = result.register(clazz.execute(passedArguments, name.start.clone(), name.end.clone(), context))
+
+            if (result.shouldReturn()) {
+                return result
+            }
+
+            members[name.value.toString()] = member!!
+        }
+
+        val enum = EnumValue(node.name.value.toString(), members)
+            .position(node.start, node.end)
+            .givenContext(context)
+
+        val set = TableAccessor(context.table)
+            .identifier(node.name.value.toString())
+            .immutable(true)
+            .set(enum, declaration = true, data = Table.Data(node.start, node.end, context))
+
+        return result.success(enum)
     }
 
     private fun condition(node: ConditionNode, context: Context, childContext: Context): RuntimeResult {

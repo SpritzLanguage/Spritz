@@ -617,6 +617,16 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             return result.success(`class` as Node)
         }
 
+        if (token.matches("enum")) {
+            val enum = result.register(this.enum())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(enum as Node)
+        }
+
         if (token.matches("for")) {
             val `for` = result.register(this.`for`())
 
@@ -999,6 +1009,168 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
         }
 
         return result.success(ClassDefineNode(name, constructor, body, start, this.currentToken.end))
+    }
+
+    private fun enum(): ParseResult {
+        val result = ParseResult()
+        val start = this.currentToken.start.clone()
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != IDENTIFIER) {
+            return result.failure(ParsingError(
+                "Expected identifier",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        val name = this.currentToken
+
+        advanceRegister(result)
+
+        val constructor = mutableListOf<Argument>()
+
+        if (this.currentToken.type == OPEN_PARENTHESES) {
+            advanceRegister(result)
+
+            while (this.currentToken.type == IDENTIFIER) {
+                val argumentName = this.currentToken
+                advanceRegister(result)
+
+                var argumentType: Node? = null
+
+                if (this.currentToken.type == COLON) {
+                    advanceRegister(result)
+
+                    argumentType = result.register(this.call(child = true, type = true))
+
+                    if (result.error != null) {
+                        return result
+                    }
+                }
+
+                if (this.currentToken.type == COMMA) {
+                    advanceRegister(result)
+                }
+
+                constructor.add(Argument(argumentName, argumentType))
+            }
+
+            if (this.currentToken.type != CLOSE_PARENTHESES) {
+                return result.failure(ParsingError(
+                    "Expected ')'",
+                    this.currentToken.start,
+                    this.currentToken.end
+                ))
+            }
+
+            advanceRegister(result)
+        }
+
+        if (this.currentToken.type != OPEN_BRACE) {
+            return result.failure(ParsingError(
+                "Expected '{'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        val members = linkedMapOf<Token<*>, List<Node>>()
+
+        while (this.currentToken.type == IDENTIFIER) {
+            val identifier = this.currentToken
+
+            advanceRegister(result)
+
+            val argumentNodes = mutableListOf<Node>()
+
+            if (this.currentToken.type == OPEN_PARENTHESES) {
+                advanceRegister(result)
+
+                if (this.currentToken.type == CLOSE_PARENTHESES) {
+                    result.registerAdvancement()
+                    this.advance()
+                } else {
+                    val node = result.register(this.expression())
+
+                    if (result.error != null) {
+                        return result.failure(ParsingError(
+                            "Expected argument",
+                            this.currentToken.start,
+                            this.currentToken.end
+                        ))
+                    }
+
+                    argumentNodes.add(node as Node)
+
+                    while (this.currentToken.type == COMMA) {
+                        advanceRegister(result)
+
+                        val node = result.register(this.expression())
+
+                        if (result.error != null) {
+                            return result
+                        }
+
+                        argumentNodes.add(node as Node)
+                    }
+
+                    if (this.currentToken.type != CLOSE_PARENTHESES) {
+                        return result.failure(ParsingError(
+                            "Expected ',' or ')'",
+                            this.currentToken.start,
+                            this.currentToken.end
+                        ))
+                    }
+
+                    advanceRegister(result)
+                }
+            }
+
+            members[identifier] = argumentNodes
+
+            if (this.currentToken.type == COMMA) {
+                advanceRegister(result)
+            }
+        }
+
+        var body: Node? = null
+
+        if (this.currentToken.type == OPEN_BRACE) {
+            advanceRegister(result)
+
+            body = result.register(this.statements())
+
+            if (result.error != null) {
+                return result
+            }
+
+            if (this.currentToken.type != CLOSE_BRACE) {
+                return result.failure(
+                    ParsingError(
+                        "Expected '}'",
+                        this.currentToken.start,
+                        this.currentToken.end,
+                    )
+                )
+            }
+
+            advanceRegister(result)
+        }
+
+        advanceRegister(result)
+
+        return result.success(EnumDefineNode(
+            name,
+            constructor,
+            members,
+            body,
+            start,
+            this.currentToken.end.clone()
+        ))
     }
 
     private fun `for`(): ParseResult {

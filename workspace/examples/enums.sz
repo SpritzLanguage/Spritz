@@ -1,0 +1,19 @@
+enum TestEnum(a: int) {
+    MEMBER_ONE(2),
+    MEMBER_TWO(3)
+
+    {
+        task<int> test = a + 2
+    }
+}
+
+task<int> main {
+    std::println(TestEnum::MEMBER_ONE::test())
+
+    ClsWithEnum::TestEnum::MEMBER_TWO::test()
+
+    const a = ClsWithEnum(ClsWithEnum::TestEnum::MEMBER_TWO)
+    std::println(a::getTest())
+
+    return 0
+}

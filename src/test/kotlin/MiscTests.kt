@@ -1,3 +1,4 @@
+import jvmlink.ClassWithEnum
 import spritz.SpritzEnvironment
 import spritz.value.table.TableAccessor
 import spritz.value.task.DefinedTaskValue
@@ -13,6 +14,7 @@ object MiscTests {
     @JvmStatic
     fun main(args: Array<String>) {
         val spritzEnvironment = SpritzEnvironment()
+            .putClass("ClsWithEnum", ClassWithEnum::class.java)
             .setWarningHandler {
                 println(it)
             }
@@ -20,7 +22,7 @@ object MiscTests {
                 println(it)
             }
 
-        spritzEnvironment.evaluate("lambdas.sz", File("examples/lambdas.sz").readText(Charset.defaultCharset()))
+        spritzEnvironment.evaluate("enums.sz", File("examples/enums.sz").readText(Charset.defaultCharset()))
 
         val main = TableAccessor(spritzEnvironment.global)
             .identifier("main")

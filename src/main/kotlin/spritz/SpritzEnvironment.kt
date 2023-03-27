@@ -3,6 +3,7 @@ package spritz
 import spritz.api.Coercion
 import spritz.api.Config
 import spritz.api.annotations.Excluded
+import spritz.api.annotations.Identifier
 import spritz.builtin.Global
 import spritz.builtin.Standard
 import spritz.error.Error
@@ -178,9 +179,9 @@ class SpritzEnvironment(val config: Config = Config()) {
 
                 if (Modifier.isPublic(it.modifiers) && Modifier.isStatic(it.modifiers)) {
                     TableAccessor(table)
-                    .identifier(it.coercedName())
-                    .immutable(true)
-                    .set(Coercion.IntoSpritz.coerce(it, null).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
+                        .identifier(it.coercedName())
+                        .immutable(true)
+                        .set(Coercion.IntoSpritz.coerce(it, null).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
                 }
             }
 
@@ -191,10 +192,42 @@ class SpritzEnvironment(val config: Config = Config()) {
 
                 if (Modifier.isPublic(it.modifiers) && Modifier.isStatic(it.modifiers)) {
                     TableAccessor(table)
+                        .identifier(it.coercedName())
+                        .immutable(true)
+                        .set(Coercion.IntoSpritz.coerce(it, null).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
+                }
+            }
+
+            clazz.declaredClasses.forEach {
+                if (it.isAnnotationPresent(Excluded::class.java)) {
+                    return@forEach
+                }
+
+                if (Modifier.isPublic(it.modifiers)) {
+                    TableAccessor(table)
+                        .identifier(it.coercedName())
+                        .immutable(true)
+                        .set(
+                            Coercion.IntoSpritz.coerce(it, null).linked(),
+                            data = Table.Data(LinkPosition(), LinkPosition(), context)
+                        )
+                }
+            }
+
+            clazz.enumConstants?.forEach {
+                it as Enum<*>
+
+                if (it.declaringClass.getField(it.name).isAnnotationPresent(Excluded::class.java)) {
+                    return@forEach
+                }
+
+                TableAccessor(table)
                     .identifier(it.coercedName())
                     .immutable(true)
-                    .set(Coercion.IntoSpritz.coerce(it, null).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
-                }
+                    .set(
+                        Coercion.IntoSpritz.coerce(it, null).linked(),
+                        data = Table.Data(LinkPosition(), LinkPosition(), context)
+                    )
             }
         }
 

@@ -13,6 +13,7 @@ import spritz.util.coercedName
 import spritz.value.NullValue
 import spritz.value.Value
 import spritz.value.bool.BooleanValue
+import spritz.value.`class`.JvmClassValue
 import spritz.value.`class`.JvmInstanceValue
 import spritz.value.list.ListValue
 import spritz.value.number.ByteValue
@@ -45,7 +46,9 @@ object Coercion {
             return when (any) {
                 is Value -> any
 
+                is Class<*> -> JvmClassValue(any.coercedName(), any)
                 is Field -> coerce(any.get(instance))
+
                 is Boolean -> BooleanValue(any)
                 is Number -> coerceNumber(any)
                 is String -> StringValue(any)
