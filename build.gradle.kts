@@ -1,5 +1,6 @@
 plugins {
     java
+    `maven-publish`
     kotlin("jvm") version "1.6.20"
 }
 
@@ -13,3 +14,5 @@ dependencies {
     implementation(kotlin("reflect", "1.6.20"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
 }
+
+publishing.publications.create<MavenPublication>("maven").from(components["java"])
