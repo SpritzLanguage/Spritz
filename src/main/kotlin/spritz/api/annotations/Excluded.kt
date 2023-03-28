@@ -6,6 +6,10 @@ package spritz.api.annotations
  * @author surge
  * @since 04/03/2023
  */
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.FIELD)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.FIELD,
+    AnnotationTarget.CLASS,
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.VALUE_PARAMETER
+)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Excluded
