@@ -1,5 +1,6 @@
 package spritz.interpreter.context
 
+import spritz.api.Config
 import spritz.lexer.position.Position
 import spritz.value.table.Table
 
@@ -7,7 +8,7 @@ import spritz.value.table.Table
  * @author surge
  * @since 01/03/2023
  */
-data class Context(val name: String, val parent: Context? = null, val parentEntryPosition: Position? = null) {
+data class Context(val name: String, val parent: Context? = null, val parentEntryPosition: Position? = null, val config: Config? = null) {
 
     lateinit var table: Table
 

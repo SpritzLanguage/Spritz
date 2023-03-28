@@ -18,5 +18,10 @@ data class Config(
     /**
      * Whether to allow native linking or not
      */
-    val natives: Boolean = true
+    val natives: Boolean = true,
+
+    /**
+     * Log debug messages
+     */
+    val debug: Boolean = false
 )

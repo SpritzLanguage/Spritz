@@ -1,5 +1,7 @@
+import jvmlink.ClassTesting
 import jvmlink.ClassWithEnum
 import spritz.SpritzEnvironment
+import spritz.api.Config
 import spritz.value.table.TableAccessor
 import spritz.value.task.DefinedTaskValue
 import java.io.File
@@ -13,8 +15,10 @@ object MiscTests {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val spritzEnvironment = SpritzEnvironment()
+        val spritzEnvironment = SpritzEnvironment(Config(debug = true))
             .putClass("ClsWithEnum", ClassWithEnum::class.java)
+            .putInstance("ClassTesting", ClassTesting(2))
+
             .setWarningHandler {
                 println(it)
             }

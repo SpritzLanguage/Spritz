@@ -33,7 +33,7 @@ class SpritzEnvironment(val config: Config = Config()) {
     val global = Table()
 
     // bottom of the context hierarchy
-    val origin = Context("<program>").givenTable(global)
+    val origin = Context("<program>", config = config).givenTable(global)
 
     // handlers, how each warning or error should be handled
     private var warningHandler: (Warning) -> Unit = {}

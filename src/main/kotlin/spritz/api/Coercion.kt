@@ -88,6 +88,10 @@ object Coercion {
                         arguments.add(getEquivalentPrimitive(value, types[index]))
                     }
 
+                    if (data.context.getOrigin().config?.debug == true) {
+                        println("DEBUG: JVM Task '$identifier' has parameters: ${method.parameterTypes.map { it.simpleName }}, got given ${arguments.map { (it ?: NullValue())::class.java.simpleName }}")
+                    }
+
                     try {
                         val result = method.invoke(instance, *arguments.toTypedArray())
 
