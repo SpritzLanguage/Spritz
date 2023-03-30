@@ -9,6 +9,8 @@ import spritz.value.Value
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import kotlin.reflect.KProperty
+import kotlin.reflect.jvm.kotlinProperty
 
 /**
  * @author surge
@@ -33,6 +35,10 @@ fun Class<*>.getAllFields(): List<Field> {
     val fields = mutableListOf<Field>()
 
     this.declaredFields.forEach {
+        if (it.isSynthetic) {
+            return@forEach
+        }
+
         it.isAccessible = true
 
         fields.add(it)
@@ -49,6 +55,10 @@ fun Class<*>.getAllMethods(): List<Method> {
     val methods = mutableListOf<Method>()
 
     this.declaredMethods.forEach {
+        if (it.isSynthetic) {
+            return@forEach
+        }
+
         it.isAccessible = true
 
         methods.add(it)

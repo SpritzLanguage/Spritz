@@ -1,22 +1,23 @@
 package jvmlink
 
+import spritz.api.Coercion
 import spritz.api.annotations.Identifier
+import spritz.value.Value
 
 /**
  * @author surge
  * @since 18/03/2023
  */
-class ClassTesting(val a: Int) {
+class ClassTesting {
 
     @Identifier("test")
     fun test(value: String) {
         println(value)
     }
 
-    @Identifier("test2")
-    fun test2(value: String): String {
-        println(value + "2")
-        return "testdfgds"
+    @Identifier("boolean_setting")
+    fun registerBoolean(name: String, description: String, default: Boolean): Value {
+        return Coercion.IntoSpritz.coerce(default)
     }
 
 }

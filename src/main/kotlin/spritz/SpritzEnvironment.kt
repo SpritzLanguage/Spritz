@@ -140,8 +140,8 @@ class SpritzEnvironment(val config: Config = Config()) {
          */
         @JvmStatic
         fun putIntoTable(instance: Any, table: Table, context: Context) {
-            instance::class.java.declaredFields.forEach {
-                if (it.isAnnotationPresent(Excluded::class.java)) {
+            instance::class.java.getAllFields().forEach {
+                if (it.isAnnotationPresent(Excluded::class.java) || it.isSynthetic) {
                     return@forEach
                 }
 
@@ -153,8 +153,8 @@ class SpritzEnvironment(val config: Config = Config()) {
                     .set(Coercion.IntoSpritz.coerce(it, instance).linked(), data = Table.Data(LinkPosition(), LinkPosition(), context))
             }
 
-            instance::class.java.declaredMethods.forEach {
-                if (it.isAnnotationPresent(Excluded::class.java)) {
+            instance::class.java.getAllMethods().forEach {
+                if (it.isAnnotationPresent(Excluded::class.java) || it.isSynthetic) {
                     return@forEach
                 }
 
@@ -173,7 +173,7 @@ class SpritzEnvironment(val config: Config = Config()) {
         @JvmStatic
         fun staticLoad(clazz: Class<*>, table: Table, context: Context) {
             clazz.declaredFields.forEach {
-                if (it.isAnnotationPresent(Excluded::class.java)) {
+                if (it.isAnnotationPresent(Excluded::class.java) || it.isSynthetic) {
                     return@forEach
                 }
 
@@ -186,7 +186,7 @@ class SpritzEnvironment(val config: Config = Config()) {
             }
 
             clazz.declaredMethods.forEach {
-                if (it.isAnnotationPresent(Excluded::class.java)) {
+                if (it.isAnnotationPresent(Excluded::class.java) || it.isSynthetic) {
                     return@forEach
                 }
 
@@ -199,7 +199,7 @@ class SpritzEnvironment(val config: Config = Config()) {
             }
 
             clazz.declaredClasses.forEach {
-                if (it.isAnnotationPresent(Excluded::class.java)) {
+                if (it.isAnnotationPresent(Excluded::class.java) || it.isSynthetic) {
                     return@forEach
                 }
 

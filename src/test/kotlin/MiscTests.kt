@@ -17,7 +17,7 @@ object MiscTests {
     fun main(args: Array<String>) {
         val spritzEnvironment = SpritzEnvironment(Config(debug = true))
             .putClass("ClsWithEnum", ClassWithEnum::class.java)
-            .putInstance("ClassTesting", ClassTesting(2))
+            .putInstance("ClassTesting", ClassTesting())
 
             .setWarningHandler {
                 println(it)

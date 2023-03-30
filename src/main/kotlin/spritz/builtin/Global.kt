@@ -21,14 +21,9 @@ import spritz.value.task.TaskValue
  */
 object Global {
 
-    @Identifier("true")
-    const val TRUE = true
-
-    @Identifier("false")
-    const val FALSE = false
-
-    @Identifier("null")
-    @JvmField val NULL = null
+    @Identifier("true") const val `true` = true
+    @Identifier("false") const val `false` = false
+    @Identifier("null") @JvmField val `null` = null
 
     // primitive types
     @JvmField val any = PrimitiveValue("any") { _, required -> required.type == "any" }
@@ -39,7 +34,7 @@ object Global {
     @JvmField val string = PrimitiveValue("string") { given, required -> given is StringValue && required.type == "string" }
     @JvmField val task = PrimitiveValue("task") { given, required -> given is TaskValue && required.type == "task" }
     @JvmField val list = PrimitiveValue("list") { given, required -> given is ListValue && required.type == "list" }
-    @Identifier("class") @JvmField val `class` = PrimitiveValue("class") { given, required -> (given is DefinedClassValue || given is JvmClassValue) && required.type == "class" }
+    @JvmField val `class` = PrimitiveValue("class") { given, required -> (given is DefinedClassValue || given is JvmClassValue) && required.type == "class" }
     @JvmField val instance = PrimitiveValue("instance") { given, required -> (given is DefinedInstanceValue || given is JvmInstanceValue) && required.type == "instance" }
 
 }
