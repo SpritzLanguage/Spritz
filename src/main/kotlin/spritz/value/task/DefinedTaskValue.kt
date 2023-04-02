@@ -9,6 +9,7 @@ import spritz.lexer.position.Position
 import spritz.parser.node.Node
 import spritz.util.ANONYMOUS
 import spritz.util.RequiredArgument
+import spritz.value.NothingValue
 import spritz.value.NullValue
 import spritz.value.PrimitiveValue
 import spritz.value.Value
@@ -47,7 +48,7 @@ class DefinedTaskValue(identifier: String, val arguments: List<RequiredArgument>
         }
 
         // get the returned value
-        val returnValue = (if (expression) value else null) ?: (result.returnValue ?: NullValue().position(start, end)).givenContext(context)
+        val returnValue = (if (expression) value else null) ?: (result.returnValue ?: NothingValue().position(start, end)).givenContext(context)
 
         // make sure the returned value conforms to the given return type.
         if (returnValue !is NullValue && returnType != null && !(PrimitiveValue.check(returnValue, returnType) || returnValue.type == returnType.type)) {

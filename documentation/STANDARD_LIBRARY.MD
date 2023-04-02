@@ -12,6 +12,10 @@ The boolean value of false.
 A filler for a non-existent value.
 
 ## `std`
+Import using:
+```
+import "std" as [identifier]
+```
 
 ### `print(input: any)`
 Prints a value (without a new line) to the console

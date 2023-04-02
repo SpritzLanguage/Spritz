@@ -16,7 +16,7 @@ open class RuntimeError(name: String, details: String, start: Position, end: Pos
         var context: Context? = this.context
 
         while (context != null && position != null) {
-            result = "  File ${position.name}, line ${position.line + 1}, in ${context.name}\n$result"
+            result = "  File ${context.name}, line ${position.line + 1}\n$result"
             position = context.parentEntryPosition
             context = context.parent
         }

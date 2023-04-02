@@ -96,6 +96,7 @@ val KEYWORDS = hashMapOf(
     "native" to "native",
     "as" to "as",
     "is" to "is",
+    "import" to "import",
 
     // loops
     "for" to "for",

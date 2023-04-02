@@ -1,0 +1,8 @@
+import "std" as std
+import "examples/enums.sz" as Enums
+
+task<int> main {
+    std::println(Enums::TestEnum::MEMBER_ONE::add())
+
+    return 0
+}

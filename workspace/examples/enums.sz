@@ -1,11 +1,8 @@
-class Tester {
-    const a = ClassTesting::test2("gfdgfd")
-}
+enum TestEnum(a: int, b: int) {
+    MEMBER_ONE(1, 2),
+    MEMBER_TWO(3, 4)
 
-task<int> main {
-
-    const a = Tester()
-
-    return 0
-
+    {
+        task<int> add = a + b
+    }
 }

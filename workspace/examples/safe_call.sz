@@ -1,5 +1,10 @@
+import "std" as std
+
 task<int> main {
     const a = null
 
     std::println(a::length?())
+    std::println("hello, world!")
+
+    return 0
 }

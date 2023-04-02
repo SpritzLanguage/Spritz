@@ -2,10 +2,7 @@ package spritz.interpreter
 
 import spritz.api.Coercion
 import spritz.error.Error
-import spritz.error.interpreting.IllegalOperationError
-import spritz.error.interpreting.JvmError
-import spritz.error.interpreting.NodeIntepreterNotFoundError
-import spritz.error.interpreting.TypeMismatchError
+import spritz.error.interpreting.*
 import spritz.interpreter.context.Context
 import spritz.lexer.token.TokenType.*
 import spritz.parser.node.Node
@@ -67,6 +64,7 @@ class Interpreter {
         CatchNode::class.java to { node: Node, parentContext: Context, childContext: Context -> catch(node as CatchNode, parentContext, childContext) },
 
         NativeNode::class.java to { node: Node, parentContext: Context, childContext: Context -> native(node as NativeNode, parentContext, childContext) },
+        ImportNode::class.java to { node: Node, parentContext: Context, childContext: Context -> import(node as ImportNode, parentContext, childContext) },
     )
 
     /**
@@ -796,6 +794,27 @@ class Interpreter {
         }
 
         return result.success(clazz)
+    }
+
+    private fun import(node: ImportNode, context: Context, childContext: Context): RuntimeResult {
+        val result = RuntimeResult()
+
+        val imported = result.register(context.getOrigin().getImport(node.name.value.toString(), node.start, node.end, context))
+
+        if (result.shouldReturn()) {
+            return result
+        }
+
+        val set = TableAccessor(context.table)
+            .identifier(node.identifier.value.toString())
+            .immutable(true)
+            .set(imported!!, declaration = true, data = Table.Data(node.start, node.end, context))
+
+        if (set.error != null) {
+            return result.failure(set.error)
+        }
+
+        return result.success(imported)
     }
 
     private fun enum(node: EnumDefineNode, context: Context, childContext: Context): RuntimeResult {

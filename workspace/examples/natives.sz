@@ -2,6 +2,8 @@ native "java.lang.Math" as maths
 native "java.lang.String" as str
 native "jvmlink.ClassTesting" as test
 
+import "std" as std
+
 task<int> main {
     std::println(maths::sin(2))
 

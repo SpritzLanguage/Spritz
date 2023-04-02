@@ -674,6 +674,16 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             return result.success(native as Node)
         }
 
+        if (token.matches("import")) {
+            val import = result.register(this.import())
+
+            if (result.error != null) {
+                return result
+            }
+
+            return result.success(import as Node)
+        }
+
         return result.failure(ParsingError(
             "Expected int, float, '+', '-' or '('",
             token.start,
@@ -1577,6 +1587,54 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
 
         return result.success(NativeNode(
             clazz,
+            identifier,
+            start,
+            this.currentToken.end
+        ))
+    }
+
+    private fun import(): ParseResult {
+        val result = ParseResult()
+        val start = this.currentToken.start.clone()
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != STRING) {
+            return result.failure(ParsingError(
+                "Expected string",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        val name = this.currentToken
+
+        advanceRegister(result)
+
+        if (!this.currentToken.matches("as")) {
+            return result.failure(ParsingError(
+                "Expected 'as'",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        advanceRegister(result)
+
+        if (this.currentToken.type != IDENTIFIER) {
+            return result.failure(ParsingError(
+                "Expected identifier",
+                this.currentToken.start,
+                this.currentToken.end
+            ))
+        }
+
+        val identifier = this.currentToken
+
+        advanceRegister(result)
+
+        return result.success(ImportNode(
+            name,
             identifier,
             start,
             this.currentToken.end

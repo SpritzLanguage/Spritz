@@ -1,3 +1,5 @@
+import "std" as std
+
 task execute_lambda(
     l: task // lambdas are considered tasks, and are executed in the same way
 ) {

@@ -1,3 +1,5 @@
+import "std" as std
+
 task<int> main {
     try {
         std::println(2 + "t")

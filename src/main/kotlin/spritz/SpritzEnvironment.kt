@@ -33,7 +33,11 @@ class SpritzEnvironment(val config: Config = Config()) {
     val global = Table()
 
     // bottom of the context hierarchy
-    val origin = Context("<program>", config = config).givenTable(global)
+    val origin = Context("<program>", config = config)
+        .givenTable(global)
+        .also {
+            it.environment = this
+        }
 
     // handlers, how each warning or error should be handled
     private var warningHandler: (Warning) -> Unit = {}
@@ -42,8 +46,8 @@ class SpritzEnvironment(val config: Config = Config()) {
     init {
         // load builtins
         if (config.loadDefaults) {
-            this.putInstance("std", Standard)
             this.putIntoGlobal(Global)
+            this.addLibrary("std", Standard)
         }
     }
 
@@ -52,6 +56,8 @@ class SpritzEnvironment(val config: Config = Config()) {
      * @return An [EvaluationResult], which contains the returned value, warnings, and an error, if one was produced.
      */
     fun evaluate(fileName: String, content: String): EvaluationResult {
+        origin.name = fileName
+
         val lexer = Lexer(fileName, content).lex()
 
         if (lexer.second != null) {
@@ -111,6 +117,15 @@ class SpritzEnvironment(val config: Config = Config()) {
     fun putIntoGlobal(instance: Any): SpritzEnvironment {
         putIntoTable(instance, global, origin)
 
+        return this
+    }
+
+    /**
+     * Adds a library to the map of imports in the origin context
+     * @return This environment
+     */
+    fun addLibrary(identifier: String, instance: Any): SpritzEnvironment {
+        origin.putImport(identifier, Coercion.IntoSpritz.coerce(instance).linked())
         return this
     }
 
