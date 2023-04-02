@@ -1,16 +1,14 @@
 package spritz.builtin
 
+import spritz.api.StandardOverride
 import spritz.api.annotations.Excluded
 import spritz.api.annotations.Identifier
 import spritz.api.result.Result
 import spritz.api.result.Success
-import spritz.value.NullValue
 import spritz.value.Value
-import spritz.value.dictionary.DictionaryValue
 import spritz.value.list.ListValue
 import spritz.value.number.FloatValue
 import spritz.value.number.IntValue
-import spritz.value.number.NumberValue
 import spritz.value.string.StringValue
 
 /**
@@ -20,23 +18,23 @@ import spritz.value.string.StringValue
 object Standard {
 
     fun print(input: Value) {
-        kotlin.io.print(input)
+        StandardOverride.output(input.toString())
     }
 
     fun printf(input: StringValue, formatted: Value) {
-        print(format(input.value, if (formatted is ListValue) formatted.elements else listOf(formatted)))
+        StandardOverride.output(format(input.value, if (formatted is ListValue) formatted.elements else listOf(formatted)))
     }
 
     fun println(input: Value) {
-        kotlin.io.println(input)
+        StandardOverride.output(input.toString() + System.lineSeparator())
     }
 
     fun printlnf(input: StringValue, formatted: Value) {
-        println(format(input.value, if (formatted is ListValue) formatted.elements else listOf(formatted)))
+        StandardOverride.output(format(input.value, if (formatted is ListValue) formatted.elements else listOf(formatted)) + System.lineSeparator())
     }
 
     fun readln(): String {
-        return readlnOrNull() ?: ""
+        return StandardOverride.input()
     }
 
     @Identifier("int_range")
@@ -87,7 +85,7 @@ object Standard {
 
     @Identifier("exit_process")
     fun exitProcess(status: Int) {
-        kotlin.system.exitProcess(status)
+        StandardOverride.exit(status)
     }
 
     // utility functions
