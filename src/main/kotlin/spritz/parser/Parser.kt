@@ -279,6 +279,12 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             return result
         }
 
+        val safe = (this.currentToken.type == SAFE_CALL).also {
+            if (it) {
+                advanceRegister(result)
+            }
+        }
+
         if (this.currentToken.type == OPEN_PARENTHESES) {
             if (type) {
                 return result.failure(ParsingError(
@@ -334,11 +340,12 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             node = TaskCallNode(atom as Node, argumentNodes, atom.start, this.currentToken.end)
         }
 
+        node!!.safe = safe
+
         var child: Node? = node
 
         while (this.currentToken.type == ACCESSOR) {
-            result.registerAdvancement()
-            this.advance()
+            advanceRegister(result)
 
             val sub = result.register(this.call(true))
 
@@ -350,7 +357,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             child = sub
         }
 
-        return result.success(node as Node)
+        return result.success(node)
     }
 
     private fun atom(child: Boolean = false): ParseResult {

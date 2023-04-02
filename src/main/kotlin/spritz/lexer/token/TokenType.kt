@@ -69,6 +69,7 @@ enum class TokenType {
     COMMA,
     ACCESSOR,
     ARROW,
+    SAFE_CALL,
 
     END_OF_FILE
 }

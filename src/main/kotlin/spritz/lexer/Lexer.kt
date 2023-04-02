@@ -405,6 +405,11 @@ class Lexer(val name: String, val contents: String) {
                     tokens.add(Token(type, null, start, this.position.clone()))
                 }
 
+                '?' -> {
+                    tokens.add(Token(SAFE_CALL, null, this.position.clone()))
+                    this.advance()
+                }
+
                 else -> {
                     val start = this.position.clone()
                     val char = this.currentChar!!

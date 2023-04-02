@@ -1,0 +1,5 @@
+task<int> main {
+    const a = null
+
+    std::println(a::length?())
+}

@@ -903,6 +903,10 @@ class Interpreter {
         val result = RuntimeResult()
 
         if (node.child != null) {
+            if (node.child!!.safe && reference is NullValue) {
+                return result.success(NullValue())
+            }
+
             val childReferenceContext = Context(reference.identifier)
             childReferenceContext.table = reference.table
 

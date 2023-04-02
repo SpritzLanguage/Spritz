@@ -17,6 +17,6 @@ class AccessNode(val identifier: Token<*>) : Node(identifier.start, identifier.e
         return this
     }
 
-    override fun toString() = "(Access: $identifier)::($child)"
+    override fun toString() = "(Access: $identifier${if (safe) ", SAFE" else ""})::($child)"
 
 }

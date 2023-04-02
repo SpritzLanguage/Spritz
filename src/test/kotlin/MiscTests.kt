@@ -15,7 +15,7 @@ object MiscTests {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val spritzEnvironment = SpritzEnvironment(Config(debug = true))
+        val spritzEnvironment = SpritzEnvironment(Config(debug = false))
             .putClass("ClsWithEnum", ClassWithEnum::class.java)
             .putInstance("ClassTesting", ClassTesting())
 
@@ -26,7 +26,7 @@ object MiscTests {
                 println(it)
             }
 
-        spritzEnvironment.evaluate("enums.sz", File("examples/enums.sz").readText(Charset.defaultCharset()))
+        spritzEnvironment.evaluate("safe_call.sz", File("examples/safe_call.sz").readText(Charset.defaultCharset()))
 
         val main = TableAccessor(spritzEnvironment.global)
             .identifier("main")
