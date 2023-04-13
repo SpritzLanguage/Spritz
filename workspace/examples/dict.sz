@@ -1,0 +1,22 @@
+import "std" as std
+
+task<int> main {
+    const d = {
+        "member_one": 2,
+        "member_two": "abc",
+        "member_three": {
+            "member_three_one": {
+                "member_three_one_one": {
+                    "member_three_one_one_one": {
+                        "member_three_one_one_one": "hiiiii :3"
+                    }
+                }
+            }
+        }
+    }
+
+    std::println(d)
+    std::println(d::get("member_one"))
+    std::println(d::get("member_three"))
+    return -1
+}

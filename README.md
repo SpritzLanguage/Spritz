@@ -68,7 +68,7 @@ std::println(question?)
 - [x] Variables (`mut`, `const`)
     - [ ] Actually enforce `const` variables. (No error is thrown.) 
 - [x] Basic Types
-- [ ] Dictionaries / Maps
+- [x] Dictionaries / Maps
 - [x] Tasks
 - [ ] Enums
 - [ ] Add more to this TODO list

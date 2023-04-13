@@ -26,7 +26,7 @@ object MiscTests {
                 println(it)
             }
 
-        spritzEnvironment.evaluate("safe_call.sz", File("examples/safe_call.sz").readText(Charset.defaultCharset()))
+        spritzEnvironment.evaluate("safe_call.sz", File("examples/dict.sz").readText(Charset.defaultCharset()))
 
         val main = TableAccessor(spritzEnvironment.global)
             .identifier("main")
