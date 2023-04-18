@@ -338,6 +338,16 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
             }
 
             node = TaskCallNode(atom as Node, argumentNodes, atom.start, this.currentToken.end)
+
+            if (this.currentToken.matches("lambda")) {
+                val lambda = result.register(this.atom())
+
+                if (result.error != null) {
+                    return result
+                }
+
+                node.arguments.add(lambda!!)
+            }
         }
 
         node!!.safe = safe
