@@ -19,7 +19,9 @@ import spritz.value.`class`.JvmClassValue
 import spritz.value.table.Table
 import spritz.value.table.TableAccessor
 import spritz.warning.Warning
+import java.io.File
 import java.lang.reflect.Modifier
+import java.nio.charset.Charset
 
 /**
  * An environment that contains the global value table, origin context, handlers, etc.
@@ -83,6 +85,12 @@ class SpritzEnvironment(val config: Config = Config()) {
 
         return EvaluationResult(interpreter.value, parser.warnings, null)
     }
+
+    /**
+     * Evaluates the given [file].
+     * @see evaluate
+     */
+    fun evaluate(file: File): EvaluationResult = evaluate(file.name, file.readText(Charset.defaultCharset()))
 
     /**
      * Adds a referencable value to the [global] value table, which can be used in a script.
