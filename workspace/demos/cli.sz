@@ -3,11 +3,6 @@ import "std" as std
 class Command(name: string, arguments: list, execute: task)
 
 task<int> main {
-    for (i : std::int_range(0, 10, 1)) {
-        const a = 3 + i
-        std::println(a)
-    }
-
     const variables = {}
 
     const commands = [
