@@ -26,11 +26,11 @@ object Standard {
     }
 
     fun println(input: Value) {
-        StandardOverride.output(input.toString() + System.lineSeparator())
+        StandardOverride.outputln(input.toString())
     }
 
     fun printlnf(input: StringValue, formatted: Value) {
-        StandardOverride.output(format(input.value, if (formatted is ListValue) formatted.elements else listOf(formatted)) + System.lineSeparator())
+        StandardOverride.outputln(format(input.value, if (formatted is ListValue) formatted.elements else listOf(formatted)))
     }
 
     fun readln(): String {

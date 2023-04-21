@@ -3,6 +3,11 @@ import "std" as std
 class Command(name: string, arguments: list, execute: task)
 
 task<int> main {
+    for (i : std::int_range(0, 10, 1)) {
+        const a = 3 + i
+        std::println(a)
+    }
+
     const variables = {}
 
     const commands = [
@@ -11,7 +16,7 @@ task<int> main {
             catch exception -> std::printlnf("Failed to execute 'quit': %", exception::details)
         },
 
-        Command("echo", null) { args: list ->
+        Command("echo", null) lambda { args: list ->
             std::println(args::join(" ", "%"))
         },
 

@@ -13,6 +13,10 @@ object StandardOverride {
     }
 
     var output: (Any) -> Unit = {
+        print(it)
+    }
+
+    var outputln: (Any) -> Unit = {
         println(it)
     }
 

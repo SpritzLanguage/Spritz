@@ -640,11 +640,11 @@ class Interpreter {
             ))
         }
 
-        val scope = Context("scope", parent = context).givenTable(Table(context.table))
-
         val elements = mutableListOf<Value>()
 
         for (i in list.elements) {
+            val scope = Context("scope", parent = context).givenTable(Table(context.table))
+
             TableAccessor(scope.table)
                 .identifier(node.identifier.value.toString())
                 .immutable(true)
@@ -667,7 +667,7 @@ class Interpreter {
             elements.add(body!!)
         }
 
-        return result.success(ListValue(elements).position(node.start, node.end).givenContext(scope))
+        return result.success(ListValue(elements).position(node.start, node.end).givenContext(context))
     }
 
     private fun `while`(node: WhileNode, context: Context, childContext: Context): RuntimeResult {
