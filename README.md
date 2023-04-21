@@ -1,5 +1,7 @@
 # Spritz
 
+![version](https://img.shields.io/github/v/release/SpritzLanguage/Spritz?style=for-the-badge)
+
 An interpreted programming language written in Kotlin, designed for interoperability with the JVM.
 
 ## Get Started
