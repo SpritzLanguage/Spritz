@@ -16,10 +16,7 @@ import spritz.value.bool.BooleanValue
 import spritz.value.`class`.JvmClassValue
 import spritz.value.`class`.JvmInstanceValue
 import spritz.value.list.ListValue
-import spritz.value.number.ByteValue
-import spritz.value.number.FloatValue
-import spritz.value.number.IntValue
-import spritz.value.number.NumberValue
+import spritz.value.number.*
 import spritz.value.string.StringValue
 import spritz.value.task.JvmTaskValue
 import java.lang.reflect.Field
@@ -140,7 +137,8 @@ object Coercion {
         fun coerceNumber(number: Number): NumberValue<*> {
             return when (number) {
                 is Byte -> ByteValue(number)
-                is Int, is Short, is Long -> IntValue(number.toInt())
+                is Long -> LongValue(number.toLong())
+                is Int, is Short -> IntValue(number.toInt())
                 else -> FloatValue(number.toFloat())
             }
         }
@@ -153,7 +151,7 @@ object Coercion {
         }
 
         when (clazz) {
-            Int::class.java, Float::class.java, Double::class.java, Long::class.java, Short::class.java -> {
+            Int::class.java, Float::class.java, Double::class.java, Long::class.java, Short::class.java, Byte::class.java -> {
                 return NumberValue::class.java
             }
 

@@ -1,0 +1,14 @@
+import "std" as std
+import "system" as system
+
+task<int> main {
+    const init = system::current_time_millis()
+
+    for (i : std::int_range(0, 1000, 1)) {
+        std::println(i)
+    }
+
+    std::println("Time: " + (system::current_time_millis() - init))
+
+    return 0
+}

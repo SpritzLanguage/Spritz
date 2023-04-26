@@ -81,6 +81,16 @@ class Lexer(val name: String, val contents: String) {
                         type = BYTE
                     }
 
+                    if (this.currentChar == 'l' || this.currentChar == 'L') {
+                        this.advance()
+
+                        if (dots > 0) {
+                            return Pair(mutableListOf(), LexingError("The floating point literal does not conform to type 'long'", start, this.position.clone()))
+                        }
+
+                        type = LONG
+                    }
+
                     tokens.add(Token(type, result, start, this.position.clone()))
                 }
 

@@ -52,6 +52,7 @@ enum class TokenType {
 
     // inbuilt types
     INT,
+    LONG,
     FLOAT,
     BYTE,
     STRING,

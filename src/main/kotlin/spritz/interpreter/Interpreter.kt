@@ -210,6 +210,7 @@ class Interpreter {
         var reference = when (node.token.type) {
             BYTE -> ByteValue(node.token.value.toString().toByte())
             INT -> IntValue(node.token.value.toString().toInt())
+            LONG -> LongValue(node.token.value.toString().toLong())
             else -> FloatValue(node.token.value.toString().toFloat())
         }.position(node.start, node.end).givenContext(context)
 

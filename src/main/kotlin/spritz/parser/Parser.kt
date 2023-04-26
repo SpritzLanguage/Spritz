@@ -375,7 +375,7 @@ class Parser(val config: Config, val tokens: List<Token<*>>) {
 
         val token = this.currentToken
 
-        if (token.type in arrayOf(INT, FLOAT, BYTE)) {
+        if (token.type in arrayOf(INT, LONG, FLOAT, BYTE)) {
             advanceRegister(result)
             return result.success(NumberNode(token))
         }

@@ -11,6 +11,7 @@ import spritz.value.`class`.JvmInstanceValue
 import spritz.value.list.ListValue
 import spritz.value.number.FloatValue
 import spritz.value.number.IntValue
+import spritz.value.number.LongValue
 import spritz.value.number.NumberValue
 import spritz.value.string.StringValue
 import spritz.value.task.TaskValue
@@ -28,6 +29,7 @@ object Global {
     // primitive types
     @JvmField val any = PrimitiveValue("any") { _, required -> required.type == "any" }
     @JvmField val int = PrimitiveValue("int") { given, required -> given is IntValue && required.type == "int" }
+    @JvmField val long = PrimitiveValue("long") { given, required -> given is LongValue && required.type == "long" }
     @JvmField val float = PrimitiveValue("float") { given, required -> given is FloatValue && required.type == "float" }
     @JvmField val number = PrimitiveValue("number") { given, required -> given is NumberValue<*> && required.type in NUMBERS }
     @JvmField val boolean = PrimitiveValue("boolean") { given, required -> given is BooleanValue && required.type == "boolean" }

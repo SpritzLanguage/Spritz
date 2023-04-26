@@ -5,7 +5,6 @@ import spritz.api.Config
 import spritz.value.table.TableAccessor
 import spritz.value.task.DefinedTaskValue
 import java.io.File
-import java.nio.charset.Charset
 
 /**
  * @author surge
@@ -19,14 +18,7 @@ object MiscTests {
             .putClass("ClsWithEnum", ClassWithEnum::class.java)
             .putInstance("ClassTesting", ClassTesting())
 
-            .setWarningHandler {
-                println(it)
-            }
-            .setErrorHandler {
-                println(it)
-            }
-
-        spritzEnvironment.evaluate(File("demos/cli.sz"))
+        spritzEnvironment.evaluate(File("examples/for_loop.sz"))
 
         val main = TableAccessor(spritzEnvironment.global)
             .identifier("main")

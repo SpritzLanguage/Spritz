@@ -6,6 +6,7 @@ import spritz.api.annotations.Excluded
 import spritz.api.annotations.Identifier
 import spritz.builtin.Global
 import spritz.builtin.Standard
+import spritz.builtin.System
 import spritz.error.Error
 import spritz.interpreter.Interpreter
 import spritz.interpreter.context.Context
@@ -41,15 +42,12 @@ class SpritzEnvironment(val config: Config = Config()) {
             it.environment = this
         }
 
-    // handlers, how each warning or error should be handled
-    private var warningHandler: (Warning) -> Unit = {}
-    private var errorHandler: (Error) -> Unit = {}
-
     init {
         // load builtins
         if (config.loadDefaults) {
             this.putIntoGlobal(Global)
             this.addLibrary("std", Standard)
+            this.addLibrary("system", System)
         }
     }
 
@@ -63,23 +61,23 @@ class SpritzEnvironment(val config: Config = Config()) {
         val lexer = Lexer(fileName, content).lex()
 
         if (lexer.second != null) {
-            errorHandler(lexer.second!!)
+            config.errorStream(lexer.second!!)
             return EvaluationResult(null, listOf(), lexer.second)
         }
 
         val parser = Parser(config, lexer.first).parse()
 
-        parser.warnings.forEach(warningHandler::invoke)
+        parser.warnings.forEach(config.warningStream::invoke)
 
         if (parser.error != null) {
-            errorHandler(parser.error!!)
+            config.errorStream(parser.error!!)
             return EvaluationResult(null, parser.warnings, parser.error)
         }
 
         val interpreter = Interpreter().visit(parser.node!!, origin)
 
         if (interpreter.error != null) {
-            errorHandler(interpreter.error!!)
+            config.errorStream(interpreter.error!!)
             return EvaluationResult(null, parser.warnings, interpreter.error)
         }
 
@@ -134,24 +132,6 @@ class SpritzEnvironment(val config: Config = Config()) {
      */
     fun addLibrary(identifier: String, instance: Any): SpritzEnvironment {
         origin.putImport(identifier, Coercion.IntoSpritz.coerce(instance).linked())
-        return this
-    }
-
-    /**
-     * Sets the warning handler
-     * @return This environment
-     */
-    fun setWarningHandler(handler: (Warning) -> Unit): SpritzEnvironment {
-        warningHandler = handler
-        return this
-    }
-
-    /**
-     * Sets the error handler
-     * @return This environment
-     */
-    fun setErrorHandler(handler: (Error) -> Unit): SpritzEnvironment {
-        errorHandler = handler
         return this
     }
 
